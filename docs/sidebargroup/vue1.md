@@ -2,7 +2,7 @@
 title: 第一章
 ---
 
-## 第一题：如何提取props定义？
+## 第一题：如何提取 props 定义？
 
 ```javascript
 const PropsType = {
@@ -24,26 +24,63 @@ export default defineComponent({
 为达到复用 PropsType 的目的，需要 as const 进行只读约束
 
 ::: warning 介绍
+
 1. readonly constraint allows TS to treat the type of {required:true} as constant instead of boolean
 2. readonly 约束允许 TS 将 {required:true} 的类型视为常量而不是布尔值
-:::
+   :::
 
+## 第二题：Vue3 自定义 hook - useAxios？
 
-## 第二题：如何提高 webpack 的构建速度？
+```javascript
+import { ref } from 'vue';
+import axios from 'axios';
+export default function <T>(url: string) {
+  const result = ref<T | null>(null);
+  const loading = ref(true);
+  const loaded = ref(false);
+  const error = ref(null);
+  axios
+    .get(url)
+    .then((res) => {
+      console.log(res);
+      loading.value = false;
+      loaded.value = true;
+      result.value = res.data;
+    })
+    .catch((e) => {
+      error.value = e;
+      loading.value = false;
+    });
+  return {
+    result,
+    loading,
+    loaded,
+    error,
+  };
+}
 
-多入口情况下，使用 CommonsChunkPlugin 来提取公共代码
-通过 externals 配置来提取常用库
-利用 DllPlugin 和 DllReferencePlugin 预编译资源模块 通过 DllPlugin 来对那些我们引用但是绝对不会修改的 npm 包来进行预编译，再通过 DllReferencePlugin 将预编译的模块加载进来。
-使用 Happypack 实现多线程加速编译
-使用 webpack-uglify-parallel 来提升 uglifyPlugin 的压缩速度。 原理上 webpack-uglify-parallel 采用了多核并行压缩来提升压缩速度
-使用 Tree-shaking 和 Scope Hoisting 来剔除多余代码
+// 使用
+import useAxios from './hooks/useAxios';
+const { result, loading, loaded } = useAxios<CatResult[]>(
+  'https://api.thecatapi.com/v1/images/search?limit=1'
+);
+```
 
-## 第三题：怎么配置单页应用？怎么配置多页应用？
-
-单页应用可以理解为 webpack 的标准模式，直接在 entry 中指定单页应用的入口即可，这里不再赘述
-多页应用的话，可以使用 webpack 的 AutoWebPlugin 来完成简单自动化的构建，但是前提是项目的目录结构必须遵守他预设的规范。 多页应用中要注意的是：
-每个页面都有公共的代码，可以将这些代码抽离出来，避免重复的加载。比如，每个页面都引用了同一套 css 样式表
-随着业务的不断扩展，页面可能会不断的追加，所以一定要让入口的配置足够灵活，避免每次添加新页面还需要修改构建配置
+## 第三题：Vue3监控Suspense组件异常信息？
+```html
+<p>{{ error }}</p>
+```
+```javascript
+import { onErrorCaptured } from 'vue';
+setup() {
+  const error = ref(null);
+  onErrorCaptured((e: any) => {
+    error.value = e;
+    // 返回布尔值，表示是否向上传播
+    return true;
+  });
+}
+```
 
 ## 第四题：如何在 vue 项目中实现按需加载？
 

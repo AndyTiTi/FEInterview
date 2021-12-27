@@ -1,3 +1,8 @@
+// const path = require('path');
+// function resolve (dir) {
+//   //此处使用path.resolve 或path.join 可自行调整
+//   return path.join(__dirname, dir)
+// }
 module.exports = {
 	title: 'Hello VuePress',
 	description: 'Just playing around',
@@ -50,6 +55,10 @@ module.exports = {
 				{
 					title: 'Webpack篇',
 					children: ['bar1', 'bar2', 'bar3'],
+				},
+				{
+					title: '浏览器篇',
+					children: ['browser1', 'browser2'],
 				},
 				// {
 				// 	title: 'Webpack篇',
@@ -116,4 +125,11 @@ module.exports = {
 		 * 'twilight'
 		 */
 	},
+  configureWebpack: {
+    resolve: {
+      alias: {
+        '@alias': './images'
+      }
+    }
+  }
 }
