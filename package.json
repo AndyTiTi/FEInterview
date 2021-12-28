@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"serve": "vuepress dev docs",
+		"serve": "vuepress dev docs --port=8081",
 		"build": "vuepress build docs"
 	},
 	"keywords": [],
