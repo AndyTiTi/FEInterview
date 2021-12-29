@@ -60,6 +60,10 @@ module.exports = {
 					title: '浏览器篇',
 					children: ['browser1', 'browser2'],
 				},
+				{
+					title: '服务器篇',
+					children: ['server1', 'server2'],
+				},
 				// {
 				// 	title: 'Webpack篇',
 				// 	sidebarDepth: 2,
