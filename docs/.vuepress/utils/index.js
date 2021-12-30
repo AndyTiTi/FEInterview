@@ -67,7 +67,7 @@ const filehelper = {
 	getAllFiles: (rpath, unDirIncludes, SuffixIncludes) => {
 		let filenameList = []
 		fs.readdirSync(rpath).forEach((file) => {
-			let fileInfo = fs.statSync(rpath + '\\' + file)
+			let fileInfo = fs.statSync(rpath + '/' + file)
 			if (
 				fileInfo.isFile() &&
 				!unDirIncludes.includes(file) &&

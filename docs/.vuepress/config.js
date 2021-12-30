@@ -1,20 +1,20 @@
 //导入生成侧边栏的工具类
 const path = require('path')
-const rootPath = path.dirname(__dirname)
-const { sideBarTool } = require(path.join(__dirname, './utils/index.js'))
+// const rootPath = path.dirname(__dirname)
+// const { sideBarTool } = require(path.join(__dirname, './utils/index.js'))
 
-// 需要排除的一些目录
-let unDirIncludes = ['node_modules', 'assets', 'public', 'dist']
-// 只需要处理后缀的文件类型
-let SuffixIncludes = ['md', 'html']
-//使用方法生生成侧边栏
-// 侧边栏
-let sidebar = sideBarTool.genSideBarGroup(
-	rootPath,
-	unDirIncludes,
-	SuffixIncludes,
-	{}
-)
+// // 需要排除的一些目录
+// let unDirIncludes = ['node_modules', 'assets', 'public', 'dist']
+// // 只需要处理后缀的文件类型
+// let SuffixIncludes = ['md', 'html']
+// //使用方法生生成侧边栏
+// // 侧边栏
+// let sidebar = sideBarTool.genSideBarGroup(
+// 	rootPath,
+// 	unDirIncludes,
+// 	SuffixIncludes,
+// 	{}
+// )
 module.exports = {
 	title: 'Hello VuePress',
 	description: 'Just playing around',
