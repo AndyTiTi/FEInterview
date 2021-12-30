@@ -1,8 +1,20 @@
-// const path = require('path');
-// function resolve (dir) {
-//   //此处使用path.resolve 或path.join 可自行调整
-//   return path.join(__dirname, dir)
-// }
+//导入生成侧边栏的工具类
+const path = require('path')
+const rootPath = path.dirname(__dirname)
+const { sideBarTool } = require(path.join(__dirname, './utils/index.js'))
+
+// 需要排除的一些目录
+let unDirIncludes = ['node_modules', 'assets', 'public', 'dist']
+// 只需要处理后缀的文件类型
+let SuffixIncludes = ['md', 'html']
+//使用方法生生成侧边栏
+// 侧边栏
+let sidebar = sideBarTool.genSideBarGroup(
+	rootPath,
+	unDirIncludes,
+	SuffixIncludes,
+	{}
+)
 module.exports = {
 	title: 'Hello VuePress',
 	description: 'Just playing around',
@@ -40,6 +52,7 @@ module.exports = {
 				],
 			},
 		],
+		// sidebar,
 		sidebar: {
 			'/sidebar/': ['', '/sidebar/bar1', '/sidebar/bar2'],
 			'/other/': ['', '/other/installUse', '/other/webpack'],
@@ -53,12 +66,16 @@ module.exports = {
 					children: ['react1', 'react2'],
 				},
 				{
+					title: 'TypeScript篇',
+					children: ['typescript1', 'typescript2'],
+				},
+				{
 					title: 'Webpack篇',
-					children: ['bar1', 'bar2', 'bar3'],
+					children: ['webpack1', 'webpack2', 'webpack3'],
 				},
 				{
 					title: '浏览器篇',
-					children: ['browser1', 'browser2'],
+					children: ['browser'],
 				},
 				{
 					title: '服务器篇',
@@ -70,15 +87,15 @@ module.exports = {
 				// 	children: [
 				// 		{
 				// 			title: '第一章',
-				// 			children: ['bar1'],
+				// 			children: ['webpack1'],
 				// 		},
 				// 		{
 				// 			title: '第二章',
-				// 			children: ['bar2'],
+				// 			children: ['webpack2'],
 				// 		},
 				// 		{
 				// 			title: '第三章',
-				// 			children: ['bar3'],
+				// 			children: ['webpack3'],
 				// 		},
 				// 	],
 				// },
@@ -129,11 +146,11 @@ module.exports = {
 		 * 'twilight'
 		 */
 	},
-  configureWebpack: {
-    resolve: {
-      alias: {
-        '@alias': './images'
-      }
-    }
-  }
+	configureWebpack: {
+		resolve: {
+			alias: {
+				'@alias': './images',
+			},
+		},
+	},
 }

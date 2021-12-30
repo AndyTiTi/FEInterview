@@ -2,7 +2,7 @@
 title: 第一章
 ---
 
-#### 第一题：如何提取 props 定义？
+## 第一题：如何提取 props 定义？
 
 ```javascript
 const PropsType = {
@@ -28,7 +28,7 @@ export default defineComponent({
 2. readonly 约束允许 TS 将 {required:true} 的类型视为常量而不是布尔值
 :::
 
-#### 第二题：Vue3 自定义 hook - useAxios？
+## 第二题：Vue3 自定义 hook - useAxios？
 
 ```javascript
 import { ref } from 'vue';
@@ -65,7 +65,7 @@ const { result, loading, loaded } = useAxios<CatResult[]>(
 );
 ```
 
-#### 第三题：Vue3监控Suspense组件异常信息？
+## 第三题：Vue3监控Suspense组件异常信息？
 ```html
 <p>{{ error }}</p>
 ```
@@ -81,21 +81,21 @@ setup() {
 }
 ```
 
-#### 第四题：Vue cssInJS vue-jss？
+## 第四题：Vue cssInJS vue-jss？
 
 [GitHub](https://www.github.com/pure-vue/vue-jss)
 
-#### 第五题：v-for和v-if优先级？
+## 第五题：v-for和v-if优先级？
 
 1. 显然v-for优先于v-if被解析（codegen.js源码中，genFor优于genIf进行了判断）
 2. 如果同时出现，每次渲染都会先执行循环再判断条件，无论如何循环都不可避免性能浪费；
 3. 要避免这种情况，则在外层嵌套template，在这一层进行v-if判断，然后在内部进行v-for的遍历；
 
-#### 第六题：Vue组件的data为什么必须是个函数，而Vue的根实例则没有此限制？
+## 第六题：Vue组件的data为什么必须是个函数，而Vue的根实例则没有此限制？
 
 Vue组件可能存在多个实例，如果使用对象形式定义data，则会导致他们共用一个data对象，那么状态变更将会影响所有组件实例，这是不合理的；采用函数形式定义，在initData时会将其作为工厂函数返回全新的data对象，有效规避多实例之间状态污染的问题。而在Vue根实例创建过程中则不存在该限制，也是因为根实例只有一个，不需要担心这种情况。最终会进行合并策略mergeOptions
 
-#### 第七题：Vue中key的作用和工作原理？
+## 第七题：Vue中key的作用和工作原理？
 断点调试技巧【断点右击 EditTarget-> 进行结点的锁死，避免别的流程影响调试思路】
 
 ::: tip
@@ -139,7 +139,7 @@ F C
 
 3. vue中在使用相同标签名元素的过渡切换时，也会使用到key属性，其目的也是为了让vue可以区分它们，否则vue只会替换其内部属性而不会触发过渡效果。
 
-#### 第八题：Vue中diff算法？
+## 第八题：Vue中diff算法？
 1. diff算法是虚拟DOM技术的产物，vue里面实际叫做patch，它的核心实现来自于snabbdom；通过新旧虚拟DOM作对比（即patch），将变化的地方转换为DOM操作
 
 2. 在vue 1中是没有patch的，因为界面中每个依赖都有专门的watcher负责更新，这样项目规模变大就会成为性能瓶颈，vue 2中为了降低watcher粒度，每个组件只有一个watcher，但是当需要更新的时候，怎样才能精确找到发生变化的地方？这就需要引入patch才行。
