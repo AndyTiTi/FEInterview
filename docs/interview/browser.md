@@ -1,7 +1,3 @@
----
-title: 第一章
----
-
 ## 第一题：浏览器文件缓存位置？
 
 浏览器可以在内存、硬盘中开辟一个空间用于保存请求资源副本。我们经常调试时在DevTools Network里看到Memory Cache（內存缓存）和Disk Cache（硬盘缓存），指的就是缓存所在的位置。请求一个资源时，会按照优先级（Service Worker -> Memory Cache -> Disk Cache -> Push Cache）依次查找缓存，如果命中则使用缓存，否则发起请求。这里先介绍 Memory Cache 和 Disk Cache。
@@ -16,3 +12,19 @@ title: 第一章
 在preload或prefetch的资源加载时，两者也是均存储在http cache，当资源加载完成后，如果资源是可以被缓存的，那么其被存储在http cache中等待后续使用；如果资源不可被缓存，那么其在被使用前均存储在memory cache;
 
 ![Image from alias](/hm5o6ugws2.png)
+
+## 重绘和回流？
+重绘：当DOM树中的某些元素的属性需要更新，而这些属性只是影响元素的外观和风格，并不进行几何操作影响布局，比如background-color，我们将这样的操作称为重绘。
+回流：当渲染树中的一部分或者全部元素的规模尺寸、布局、隐藏显示等需要重新构建布局的操作，我们称为回流。
+常见因此回流属性的方法：
+1. JS更改DOM元素（插入，删除、更新、移动、添加动画等，更改DOM颜色除外）
+2. 元素尺寸改变-边距、填充、边控、宽高
+3. 改变样式属性（颜色，透明度等除外）
+4. 浏览器窗口尺寸改变
+5. offsetWidth、offsetHeigh和getComputedStyle之类的元素进行测量
+6. 设置style属性的值
+7. 修改网页默认字体
+8. 内容变化，input框中输入文字
+
+
+

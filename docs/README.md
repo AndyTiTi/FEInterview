@@ -1,7 +1,7 @@
 ---
 home: true
-heroText: vuepress-theme-reco
-tagline: A simple and beautiful vuepress blog theme.
+heroText: FrontEnd Knowledge
+tagline: A simple and beautiful frontEnd knowledge bLog.
 # heroImage: /hero.png
 # heroImageStyle: {
 #   maxWidth: '600px',
@@ -13,7 +13,7 @@ tagline: A simple and beautiful vuepress blog theme.
 # }
 # isShowTitleInHome: false
 actionText: Guide
-actionLink: /sidebargroup/vue1
+actionLink: /interview/vue1
 features:
 - title: Yesterday
   details: 开发一款看着开心、写着顺手的 vuepress 博客主题
