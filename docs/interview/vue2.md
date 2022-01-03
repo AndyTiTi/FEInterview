@@ -2,13 +2,82 @@
 title: 第二章
 ---
 
-## 第一题：如何利用 webpack 来优化前端性能？
+## 第一题：vue.$nextTick 实现原理？
 
-用 webpack 优化前端性能是指优化 webpack 的输出结果，让打包的最终结果在浏览器运行快速高效。
-压缩代码。删除多余的代码、注释、简化代码的写法等等方式。可以利用 webpack 的 UglifyJsPlugin 和 ParallelUglifyPlugin 来压缩 JS 文件， 利用 cssnano（css-loader?minimize）来压缩 css
-利用 CDN 加速。在构建过程中，将引用的静态资源路径修改为 CDN 上对应的路径。可以利用 webpack 对于 output 参数和各 loader 的 publicPath 参数来修改资源路径
-删除死代码（Tree Shaking）。将代码中永远不会走到的片段删除掉。可以通过在启动 webpack 时追加参数--optimize-minimize 来实现
-提取公共代码。
+```javascript
+const callbacks = []
+let pending = false
+
+function flushCallbacks() {
+	pending = false
+	const copies = callbacks.slice(0)
+	callbacks.length = 0
+	for (let i = 0; i < copies.length; i++) {
+		copies[i]()
+	}
+}
+let timerFunc
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+	const p = Promise.resolve()
+	timerFunc = () => {
+		p.then(flushCallbacks)
+		if (isIOS) setTimeout(noop)
+	}
+	isUsingMicroTask = true
+} else if (
+	!isIE &&
+	typeof MutationObserver !== 'undefined' &&
+	(isNative(MutationObserver) ||
+		MutationObserver.toString() === '[object MutationObserverConstructor]')
+) {
+	let counter = 1
+	const observer = new MutationObserver(flushCallbacks)
+	const textNode = document.createTextNode(String(counter))
+	observer.observe(textNode, {
+		characterData: true,
+	})
+	timerFunc = () => {
+		counter = (counter + 1) % 2
+		textNode.data = String(counter)
+	}
+	isUsingMicroTask = true
+} else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+	timerFunc = () => {
+		setImmediate(flushCallbacks)
+	}
+} else {
+	timerFunc = () => {
+		setTimeout(flushCallbacks, 0)
+	}
+}
+
+export function nextTick(cb?: Function, ctx?: Object) {
+	let _resolve
+	callbacks.push(() => {
+		if (cb) {
+			try {
+				cb.call(ctx)
+			} catch (e) {
+				handleError(e, ctx, 'nextTick')
+			}
+		} else if (_resolve) {
+			_resolve(ctx)
+		}
+	})
+	if (!pending) {
+		pending = true
+		timerFunc()
+	}
+	if (!cb && typeof Promise !== 'undefined') {
+		return new Promise((resolve) => {
+			_resolve = resolve
+		})
+	}
+}
+```
+  先判断是否支持promise，如果支持promise。就通过Promise.resolve的方法，异步执行方法，如果不支持promise，就判断是否支持MutationObserver。如果支持，就通过MutationObserver（微异步）来异步执行方法，如果MutationObserver还不支持，就通过setTimeout来异步执行方法。
+
+  MutaionObserver通过创建新的节点，调用timerFunc方法，改变MutationObserver监听的节点变化，从而触发异步方法执行。
 
 ## 第二题：如何提高 webpack 的构建速度？
 

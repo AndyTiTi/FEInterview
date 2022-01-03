@@ -12,8 +12,12 @@ title: 第一章
 使用的 React 优化 API 主要是：shouldComponentUpdate和 PureComponent，这两个 API 所提供的解决思路都是为了减少重新 render 的次数，主要是减少父组件更新而子组件也更新的情况
 - 函数式组件：React.memo 这个效果基本跟类组件里面的 PureComponent效果极其类似
 
-
-## 第二题：React.memo 高级用法？
+## 快速搞定虚拟DOM的两个“大问题”
+1. 挂载阶段
+React将结合JSX的描述，构建出虚拟DOM树，然后通过ReactDOM.render实现虚拟DOM到真实Dom的映射（触发渲染流水线）
+2. 更新阶段
+页面的变化会先作用于虚拟DOM，虚拟DOM将在JS层借助算法先对比出具体有哪些真实DOM需要被改变，然后再将这些改变作用于真实DOM
+## React.memo 高级用法？
 
 > 默认情况下其只会对 props 的复杂对象做浅层对比(浅层对比就是只会对比前后两次 props 对象引用是否相同，不会对比对象里面的内容是否相同)，如果你想要控制对比过程，那么请将自定义的比较函数通过第二个参数传入来实现
 ```javascript

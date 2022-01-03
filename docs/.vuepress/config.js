@@ -23,33 +23,6 @@ module.exports = {
 			{ text: 'Home', link: '/' },
 			{ text: 'Introduce', link: '/other/' },
 			{ text: '前端知识体系', link: '/interview/vue1' },
-			// {
-			// 	text: 'Languages',
-			// 	ariaLabel: 'Language Menu',
-			// 	items: [
-			// 		{ text: 'Chinese', link: '/language/chinese/' },
-			// 		{ text: 'Japanese', link: '/language/japanese/' },
-			// 	],
-			// },
-			// {
-			// 	text: '分类',
-			// 	items: [
-			// 		{
-			// 			text: 'Group1',
-			// 			items: [
-			// 				{ text: 'Chinese', link: '/language/chinese/' },
-			// 				{ text: 'Japanese', link: '/language/japanese/' },
-			// 			],
-			// 		},
-			// 		{
-			// 			text: 'Group2',
-			// 			items: [
-			// 				{ text: 'Chinese', link: '/language/chinese/' },
-			// 				{ text: 'Japanese', link: '/language/japanese/' },
-			// 			],
-			// 		},
-			// 	],
-			// },
 		],
 		// sidebar,
 		sidebar: {
@@ -64,7 +37,7 @@ module.exports = {
 					children: ['react1', 'react2'],
 				},
 				{
-					title: 'IavaScript篇',
+					title: 'JavaScript篇',
 					children: ['javascript1', 'javascript2'],
 				},
 				{
@@ -82,6 +55,10 @@ module.exports = {
 				{
 					title: '服务器篇',
 					children: ['server1', 'server2'],
+				},
+				{
+					title: '部署测试篇',
+					children: ['cicd1', 'cicd2'],
 				},
 				// {
 				// 	title: 'Webpack篇',
@@ -103,6 +80,7 @@ module.exports = {
 				// },
 			],
 		},
+    lastUpdated: '最后更新时间',
 		logo: '/head.png',
 		authorAvatar: '/head.png',
 		// 搜索设置

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<div
+			id="test"
+			style="
+				width: 300px;
+				font-size: 12px;
+				height: 16px;
+				background: #290;
+			"
+		>
+			0%
+		</div>
+		<ul id="ul">
+			<li>1</li>
+			<li>2</li>
+			<li>3</li>
+			<li>4</li>
+			<li>5</li>
+			<li>6</li>
+		</ul>
+		<script>
+			const test = document.getElementById('test')
+			// setTimeout实现
+			test.onclick = function () {
+				var timer = setTimeout(function fn() {
+					if (parseInt(test.style.width) < 300) {
+						test.style.width = parseInt(test.style.width) + 3 + 'px'
+						test.innerHTML = parseInt(test.style.width) / 3 + '%'
+						timer = setTimeout(fn, 17)
+					} else {
+						clearTimeout(timer)
+					}
+				}, 17)
+			}
+			// setInterval实现
+			test.onclick = function () {
+				var timer = setInterval(function () {
+					if (parseInt(test.style.width) < 300) {
+						test.style.width = parseInt(test.style.width) + 3 + 'px'
+						test.innerHTML = parseInt(test.style.width) / 3 + '%'
+					} else {
+						clearInterval(timer)
+					}
+				}, 17)
+			}
+			// requestAnimationFrame实现
+			test.onclick = function () {
+				var timer = requestAnimationFrame(function fn() {
+					if (parseInt(test.style.width) < 300) {
+						test.style.width = parseInt(test.style.width) + 3 + 'px'
+						test.innerHTML = parseInt(test.style.width) / 3 + '%'
+						requestAnimationFrame(fn)
+					} else {
+						cancelAnimationFrame(timer)
+					}
+				})
+			}
+		</script>
+
+		<script>
+			const ul = document.querySelector('ul')
+			ul.addEventListener('click', function (e) {
+				const target = e.target
+				if (target.tagName.toLowerCase() === 'li') {
+					const liList = this.querySelectorAll('li')
+					console.log(
+						liList,
+						typeof liList,
+						Object.prototype.toString.call(Array.from(liList))
+					)
+					const index = Array.prototype.indexOf.call(liList, target)
+					alert(`内容为${target.innerHTML},索引为${index}`)
+				}
+			})
+		</script>
+	</body>
+</html>
