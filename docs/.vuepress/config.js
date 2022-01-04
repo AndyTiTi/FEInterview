@@ -49,6 +49,10 @@ module.exports = {
 					children: ['webpack1', 'webpack2', 'webpack3'],
 				},
 				{
+					title: '优化篇',
+					children: ['optimizaion'],
+				},
+				{
 					title: '浏览器篇',
 					children: ['browser'],
 				},

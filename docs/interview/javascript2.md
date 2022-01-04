@@ -90,6 +90,8 @@ alert(b.id) // 10
 
 4. 最终版 extends[继承 1 次父类模板，继承 1 次父类的原型对象]
 
+**第一种**
+
 ```javascript
 function extend(Child, Parent) {
 	// 创建一个空函数，进行中转父类的原型对象
@@ -132,6 +134,29 @@ alert(b.id) // 10
 	Person.call(this, name, age)
 	this.sex = sex
 }
+```
+
+**第二种**
+
+```javascript
+function Parent(value) {
+	this.val = value
+}
+Parent.prototype.getValue = function () {
+	console.log(this.val)
+}
+
+function Child(value) {
+	Parent.call(this, value)
+}
+Child.prototype = Object.create(Parent.prototype, {
+	constructor: {
+		value: Child,
+		enumerable: false,
+		writable: true,
+		configurable: true,
+	},
+})
 ```
 
 ![image](/imgedu.lagou.jpg)
@@ -209,4 +234,28 @@ man instanceof Person
 // true
 Person.prototype.isPrototypeOf(man)
 // true
+```
+
+## 实现 call
+
+```js
+Function.prototype.newCall = function (context) {
+	console.log(this)
+	if (typeof this !== 'function') {
+		throw new TypeError('Error')
+	}
+	context = context || window
+	context.fn = this
+	const args = [...arguments].slice(1)
+	const result = context.fn(...args)
+	delete context.fn
+	return result
+}
+
+function person() {
+	console.log(this.name)
+}
+
+var b = { name: 'zs' }
+person.newCall(b)
 ```

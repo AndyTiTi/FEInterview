@@ -17,7 +17,7 @@ webpack 是基于入口的。webpack 会自动地递归解析入口所需要加�
 ## 第三题：什么是 bundle,什么是 chunk，什么是 module?
 
 bundle：是由 webpack 打包出来的文件
-chunk：代码块，一个 chunk 由多个模块组合而成，用于代码的合并和分割
+chunk：webpack打包过程中Modules的集合，是（打包过程中）的概念
 module：是开发中的单个模块，在 webpack 的世界，一切皆模块，一个模块对应一个文件，webpack 会从配置的 entry 中递归开始找出所有依赖的模块
 
 ## 第四题：什么是 Loader?什么是 Plugin?

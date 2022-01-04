@@ -2,7 +2,7 @@
 title: 第二章
 ---
 
-## 第一题：vue.$nextTick 实现原理？
+## vue.$nextTick 实现原理？
 
 ```javascript
 const callbacks = []
@@ -79,14 +79,7 @@ export function nextTick(cb?: Function, ctx?: Object) {
 
   MutaionObserver通过创建新的节点，调用timerFunc方法，改变MutationObserver监听的节点变化，从而触发异步方法执行。
 
-## 第二题：如何提高 webpack 的构建速度？
-
-多入口情况下，使用 CommonsChunkPlugin 来提取公共代码
-通过 externals 配置来提取常用库
-利用 DllPlugin 和 DllReferencePlugin 预编译资源模块 通过 DllPlugin 来对那些我们引用但是绝对不会修改的 npm 包来进行预编译，再通过 DllReferencePlugin 将预编译的模块加载进来。
-使用 Happypack 实现多线程加速编译
-使用 webpack-uglify-parallel 来提升 uglifyPlugin 的压缩速度。 原理上 webpack-uglify-parallel 采用了多核并行压缩来提升压缩速度
-使用 Tree-shaking 和 Scope Hoisting 来剔除多余代码
+## Proxy实现数据响应式？
 
 ## 第三题：怎么配置单页应用？怎么配置多页应用？
 
