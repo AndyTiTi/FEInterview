@@ -60,6 +60,10 @@ module.exports = {
 					title: '部署测试篇',
 					children: ['cicd1', 'cicd2'],
 				},
+				{
+					title: '杂记·备忘录',
+					children: ['memorandum'],
+				},
 				// {
 				// 	title: 'Webpack篇',
 				// 	sidebarDepth: 2,
@@ -80,7 +84,7 @@ module.exports = {
 				// },
 			],
 		},
-    lastUpdated: '最后更新时间',
+		lastUpdated: '最后更新时间',
 		logo: '/head.png',
 		authorAvatar: '/head.png',
 		// 搜索设置

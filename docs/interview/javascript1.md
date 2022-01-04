@@ -2,6 +2,14 @@
 title: 第一章
 ---
 
+## 某公司 1 到 12 月份的销售额存在一个对象里面 如下：{1:222, 2:123, 5:888}，请把数据处理为如下结构：[222, 123, null, null, 888, null, null, null, null, null, null, null]
+
+```js
+let obj = {1:222, 2:123, 5:888};
+const result = Array.from({ length: 12 }).map((_, index) => obj[index + 1] || null);
+console.log(result)
+```
+
 ## 为什么浏览器要有事件循环机制？
 
 因为 JS 本事是单线程异步非阻塞的，当遇到一些执行耗时长的任务时，会导致主程序阻塞，所以会将一些异步任务放入 eventLoop 进行存放，等待处理结果返回后再根据一定规则去执行相应的回调。
@@ -52,45 +60,54 @@ Number('') -> 返回的是 0
 ## 冒泡和捕获
 
 ```javascript
-<ul id="ul">
-  <li>1</li>
-  <li>2</li>
-  <li>3</li>
-  <li>4</li>
-  <li>5</li>
-  <li>6</li>
+;<ul id="ul">
+	<li>1</li>
+	<li>2</li>
+	<li>3</li>
+	<li>4</li>
+	<li>5</li>
+	<li>6</li>
 </ul>
 
 const ul = document.querySelector('ul')
 ul.addEventListener('click', function (e) {
-  const target = e.target
-  if (target.tagName.toLowerCase() === 'li') {
-    const liList = this.querySelectorAll('li') // 伪数组
-    console.log(
-      liList,
-      typeof liList, // object
-      Object.prototype.toString.call(Array.from(liList)) // [object Array]
-    )
-    const index = Array.prototype.indexOf.call(liList, target)
-    alert(`内容为${target.innerHTML},索引为${index}`)
-  }
+	const target = e.target
+	if (target.tagName.toLowerCase() === 'li') {
+		const liList = this.querySelectorAll('li') // 伪数组
+		console.log(
+			liList,
+			typeof liList, // object
+			Object.prototype.toString.call(Array.from(liList)) // [object Array]
+		)
+		const index = Array.prototype.indexOf.call(liList, target)
+		alert(`内容为${target.innerHTML},索引为${index}`)
+	}
 })
 ```
-## 一个历史贡面.上面有若干按钮的点击逻辑.每个按钮都有自己的click事件.
-新需求来了：给每一个访问的用户添加了一个属性 banned = true, 此用户点击页面上的任何按钮或者元素，都不可响应原来的函数，而是直接alert提示"你被封禁了"
+
+## 一个历史贡面.上面有若干按钮的点击逻辑.每个按钮都有自己的 click 事件.
+
+新需求来了：给每一个访问的用户添加了一个属性 banned = true, 此用户点击页面上的任何按钮或者元素，都不可响应原来的函数，而是直接 alert 提示"你被封禁了"
+
 ```javascript
-window.addEventlistener('click',function(){
-  if(banned){
-    e.stopPropagation();
-    alert("你被封禁了")
-  }
-},true)
+window.addEventlistener(
+	'click',
+	function () {
+		if (banned) {
+			e.stopPropagation()
+			alert('你被封禁了')
+		}
+	},
+	true
+)
 ```
 
 ## 节流防抖应用场景？
+
 节流：resize scroll
+
 ```javascript
 
 ```
-防抖：input
 
+防抖：input

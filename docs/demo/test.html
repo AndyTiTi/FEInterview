@@ -64,7 +64,17 @@
 				})
 			}
 		</script>
-
+		<script>
+			function unique(arr) {
+        // indexOf 只记录item第一次出现在数组中的下标
+				var res = arr.filter(function (item, index, array) {
+					return array.indexOf(item) === index
+				})
+				return res
+			}
+      debugger
+			unique([1, 2, 2, 5, 5, 4, 1, 1])
+		</script>
 		<script>
 			const ul = document.querySelector('ul')
 			ul.addEventListener('click', function (e) {

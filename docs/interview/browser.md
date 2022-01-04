@@ -1,4 +1,11 @@
-## 第一题：浏览器文件缓存位置？
+---
+title: 第一章
+---
+## 如果什么缓存策略都没设置，那么浏览器会怎么处理？
+
+对于这种情况，浏览器会采用一个启发式的算法，通常会取响应头中的 Date 减去 Last-Modified 值的 10% 作为缓存时间。
+
+## 浏览器文件缓存位置？
 
 浏览器可以在内存、硬盘中开辟一个空间用于保存请求资源副本。我们经常调试时在 DevTools Network 里看到 Memory Cache（內存缓存）和 Disk Cache（硬盘缓存），指的就是缓存所在的位置。请求一个资源时，会按照优先级（Service Worker -> Memory Cache -> Disk Cache -> Push Cache）依次查找缓存，如果命中则使用缓存，否则发起请求。这里先介绍 Memory Cache 和 Disk Cache。
 
@@ -33,7 +40,7 @@
 解决`setTimeout/setInterval`无法精准定位时间间隔
 `requestAnimationFrame`的时间间隔是由系统控制而非 JS 控制
 
-````javascript
+```javascript
 var timer = requestAnimationFrame(function{
   console.log(1)
 })
@@ -86,4 +93,19 @@ if(!window.requestAnimationFrame){
     })
   }
 </script>
-````
+
+// equestAnimationFrame 不管理回调函数队列，
+// 而滚动、触摸这类高触发频率事件的回调可能会在同一帧内触发多次。
+// 所以正确使用 requestAnimationFrame 的姿势是，
+// 在同一帧内可能调用多次 requestAnimationFrame 时，要管理回调函数，防止重复绘制动画。
+const onScroll = e => {
+    if (scheduledAnimationFrame) { return }
+
+    scheduledAnimationFrame = true
+    window.requestAnimationFrame(timestamp => {
+        scheduledAnimationFrame = false
+        animation(timestamp)
+    })
+}
+window.addEventListener('scroll', onScroll)
+```
