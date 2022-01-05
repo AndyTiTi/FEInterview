@@ -2,36 +2,99 @@
 title: 第二章
 ---
 
-## 第一题：如何利用 webpack 来优化前端性能？
+## css 优先级
 
-用 webpack 优化前端性能是指优化 webpack 的输出结果，让打包的最终结果在浏览器运行快速高效。
-压缩代码。删除多余的代码、注释、简化代码的写法等等方式。可以利用 webpack 的 UglifyJsPlugin 和 ParallelUglifyPlugin 来压缩 JS 文件， 利用 cssnano（css-loader?minimize）来压缩 css
-利用 CDN 加速。在构建过程中，将引用的静态资源路径修改为 CDN 上对应的路径。可以利用 webpack 对于 output 参数和各 loader 的 publicPath 参数来修改资源路径
-删除死代码（Tree Shaking）。将代码中永远不会走到的片段删除掉。可以通过在启动 webpack 时追加参数--optimize-minimize 来实现
-提取公共代码。
+important > 内联 > ID 选择器 > 类选择器 > 标签选择器
 
-## 第二题：如何提高 webpack 的构建速度？
+## 避免 css 全局污染。
 
-多入口情况下，使用 CommonsChunkPlugin 来提取公共代码
-通过 externals 配置来提取常用库
-利用 DllPlugin 和 DllReferencePlugin 预编译资源模块 通过 DllPlugin 来对那些我们引用但是绝对不会修改的 npm 包来进行预编译，再通过 DllReferencePlugin 将预编译的模块加载进来。
-使用 Happypack 实现多线程加速编译
-使用 webpack-uglify-parallel 来提升 uglifyPlugin 的压缩速度。 原理上 webpack-uglify-parallel 采用了多核并行压缩来提升压缩速度
-使用 Tree-shaking 和 Scope Hoisting 来剔除多余代码
+我常用的 css modules
 
-## 第三题：怎么配置单页应用？怎么配置多页应用？
+## css modules 的原理
 
-单页应用可以理解为 webpack 的标准模式，直接在 entry 中指定单页应用的入口即可，这里不再赘述
-多页应用的话，可以使用 webpack 的 AutoWebPlugin 来完成简单自动化的构建，但是前提是项目的目录结构必须遵守他预设的规范。 多页应用中要注意的是：
-每个页面都有公共的代码，可以将这些代码抽离出来，避免重复的加载。比如，每个页面都引用了同一套 css 样式表
-随着业务的不断扩展，页面可能会不断的追加，所以一定要让入口的配置足够灵活，避免每次添加新页面还需要修改构建配置
+生成唯一的类名
 
-## 第四题：如何在 vue 项目中实现按需加载？
+## 实现一个 redux？
 
-Vue UI 组件库的按需加载 为了快速开发前端项目，经常会引入现成的 UI 组件库如 ElementUI、iView 等，但是他们的体积和他们所提供的功能一样，是很庞大的。 而通常情况下，我们仅仅需要少量的几个组件就足够了，但是我们却将庞大的组件库打包到我们的源码中，造成了不必要的开销。
-不过很多组件库已经提供了现成的解决方案，如 Element 出品的 babel-plugin-component 和 AntDesign 出品的 babel-plugin-import 安装以上插件后，在.babelrc 配置中或 babel-loader 的参数中进行设置，即可实现组件按需加载了。
-![在这里插入图片描述](https://img-blog.csdnimg.cn/dd79ac82e9b54269bd60e21c1426233b.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5bCP6IyD6aaG,size_14,color_FFFFFF,t_70,g_se,x_16)
+实现 createStore 的功能，关键点发布订阅的功能，以及取消订阅的功能。
 
-单页应用的按需加载 现在很多前端项目都是通过单页应用的方式开发的，但是随着业务的不断扩展，会面临一个严峻的问题——首次加载的代码量会越来越多，影响用户的体验。
+## 用 ts 实现一个 redux？
 
-通过 import(_)语句来控制加载时机，webpack 内置了对于 import(_)的解析，会将 import(_)中引入的模块作为一个新的入口在生成一个 chunk。 当代码执行到 import(_)语句时，会去加载 Chunk 对应生成的文件。import()会返回一个 Promise 对象，所以为了让浏览器支持，需要事先注入 Promise polyfill
+## require 引入的模块 webpack 能做 Tree Shaking 吗？
+
+不能，Tree Shaking 需要静态分析，只有 ES6 的模块才支持。
+
+## webpack 能动态加载 require 引入的模块吗？
+
+应该是不能的，前面说了，webpack 支持动态导入基本上只能用 import() 和 require.ensure。
+
+## React.lazy 的原理是啥？
+
+## FiberNode 有哪些属性
+
+## react 里有动态加载的 api 吗？
+
+React.lazy
+
+## webpack 如何实现动态加载
+
+讲道理 webpack 动态加载就两种方式：import()和 require.ensure，不过他们实现原理是相同的。
+
+我觉得这道题的重点在于动态的创建 script 标签，以及通过 jsonp 去请求 chunk，推荐的文章是：[webpack 是如何实现动态导入的](https://juejin.im/post/5d26e7d1518825290726f67a)
+
+## 详细的介绍一下 getDerivedStateFromProps
+
+## flex: 0 1 auto; 是什么意思？
+
+## less 的 & 代表什么？
+
+## interface 和 type 的区别
+
+## 手写 Promise.all
+
+## 用 ES5 实现私有变量
+
+```js
+function Person(name) {
+	var _name = name
+	this.getName = function () {
+		console.log(_name)
+	}
+}
+
+var p = new Person('bibibi')
+
+console.log(p._name) //undefined
+console.log(p.getName()) //bibibi
+```
+
+## 实现一个 fill 函数，不能用循环
+
+```js
+Array.prototype.myFill = function (val, start = 0, end = this.length) {
+	if (start < end) {
+		this[start] = val
+		this.myFill(val, start + 1, end)
+	}
+}
+```
+
+## 实现一个 Typescript 里的 Pick
+
+type Pick<T, K extends keyof T> = { [P in K]: T[P] }
+
+## 手写：并发只能 10 个
+
+## 算法题：求最大公共前缀，如 ['aaafsd', 'aawwewer', 'aaddfff'] => 'aa'
+
+## 写一个 promise 重试函数，可以设置时间间隔和次数。function foo(fn, interval, times) {}
+
+[1]一文吃透 React 事件机制原理: https://toutiao.io/posts/28of14w/preview
+
+[2]flex 语法篇: https://www.ruanyifeng.com/blog/2015/07/flex-grammar.html
+
+[3]函数式组件与类组件有何不同？: https://overreacted.io/zh-hans/how-are-function-components-different-from-classes/
+
+[4]前端模块化：CommonJS,AMD,CMD,ES6: https://juejin.im/post/5aaa37c8f265da23945f365c
+
+[5]webpack 是如何实现动态导入的: https://juejin.im/post/5d26e7d1518825290726f67a

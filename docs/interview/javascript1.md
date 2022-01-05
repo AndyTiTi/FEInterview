@@ -17,6 +17,81 @@ title: 第一章
 -   var 在全局作用域下声明变量会导致变量挂载在 window 上，其他两者不会
 -   let 和 const 作用基本一致，但是后者声明的变量不能再次赋值
 
+## arguments 是什么？
+
+arguments 是函数调用时，创建的一个类似的数组但又不是数组的对象，并且它存储的是**实际传递给函数的参数**，并不局限于函数声明的参数列表
+
+```js
+function obj() {
+	console.log('arguments instanceof Array? ' + (arguments instanceof Array))
+	console.log('arguments instanceof Object? ' + (arguments instanceof Object))
+	console.log(arguments)
+}
+//向obj传递参数
+obj('monkey', 'love', 24)
+// 输出：
+{
+  "0": "monkey",
+  "1": "love",
+  "2": 24
+}
+```
+
+## callee 是什么？
+
+callee 是 arguments 对象的一个成员，它的值为"正被执行的 Function 对象"。
+
+```js
+function obj() {
+	//利用callee
+	console.log(arguments.callee)
+}
+obj()
+
+// 输出：
+function obj() {
+	//利用callee
+	console.log(arguments.callee)
+}
+```
+
+## caller 是什么？
+
+caller 是函数对象的一个属性，该属性保存着调用当前函数的函数。如果没有父函数，则为 null。
+
+```js
+//child是parent内的函数，并在parent内执行child
+function parent() {
+	function child() {
+		//这里child的父函数就是parent
+		console.log(child.caller)
+	}
+	child()
+}
+//parent1没有被别人调用
+function parent1() {
+	//这里parent1没有父函数
+	console.log(parent1.caller)
+}
+//parent2调用了child2
+function parent2() {
+	child2()
+}
+function child2() {
+	console.log(child2.caller)
+}
+/*执行
+  parent里嵌套了child函数
+  parent1没有嵌套函数
+  parent2调用了child2，child2不是嵌套在parent2里的函数
+*/
+parent()
+parent1()
+parent2()
+```
+
+![image](/caller.png)
+
 ## 数据处理
 
 某公司 1 到 12 月份的销售额存在一个对象里面 如下：{1:222, 2:123, 5:888}，请把数据处理为如下结构：[222, 123, null, null, 888, null, null, null, null, null, null, null]
@@ -36,11 +111,12 @@ console.log(result)
 因为 JS 本事是单线程异步非阻塞的，当遇到一些执行耗时长的任务时，会导致主程序阻塞，所以会将一些异步任务放入 eventLoop 进行存放，等待处理结果返回后再根据一定规则去执行相应的回调。
 [详解 JavaScript 中的 Event Loop（事件循环）机制](https://zhuanlan.zhihu.com/p/33058983)
 
-## 为什么要引入微任务的概念？只有宏任务不可以吗？
+## 为什么要引入微任务的概念？
 
+只有宏任务不可以吗？
 宏任务（先进先出的执行原则），遇到紧急任务并不能优先执行，所以需要有微任务的概念。
 
-## Node 中的事件循环和浏览器中的事件循环有什么区别？
+## Node 和浏览器的事件循环区别？
 
 宏任务的执行顺序：
 
@@ -106,7 +182,9 @@ ul.addEventListener('click', function (e) {
 })
 ```
 
-## 一个历史贡面.上面有若干按钮的点击逻辑.每个按钮都有自己的 click 事件.
+## 事件监听
+
+一个历史页面，上面有若干按钮的点击逻辑.每个按钮都有自己的 click 事件.
 
 新需求来了：给每一个访问的用户添加了一个属性 banned = true, 此用户点击页面上的任何按钮或者元素，都不可响应原来的函数，而是直接 alert 提示"你被封禁了"
 

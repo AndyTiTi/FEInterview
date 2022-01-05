@@ -1,8 +1,9 @@
 ---
 title: 第一章
 ---
-
-## 第一题：React 性能优化思路？
+## React事件机制
+[一文吃透 React 事件机制原理](https://toutiao.io/posts/28of14w/preview)
+## React 性能优化思路？
 
 :::tip React 性能优化的理念的主要方向就是这两个
 1. 减少重新 render 的次数。因为在 React 里最重(花时间最长)的一块就是 reconction(简单的可以理解为 diff)，如果不 render，就不会 reconction。
