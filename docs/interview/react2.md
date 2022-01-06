@@ -1,7 +1,6 @@
 ---
 title: 第二章
 ---
-
 ## css 优先级
 
 important > 内联 > ID 选择器 > 类选择器 > 标签选择器
@@ -48,8 +47,6 @@ React.lazy
 
 ## less 的 & 代表什么？
 
-## interface 和 type 的区别
-
 ## 手写 Promise.all
 
 ## 用 ES5 实现私有变量
@@ -78,10 +75,6 @@ Array.prototype.myFill = function (val, start = 0, end = this.length) {
 	}
 }
 ```
-
-## 实现一个 Typescript 里的 Pick
-
-type Pick<T, K extends keyof T> = { [P in K]: T[P] }
 
 ## 手写：并发只能 10 个
 

@@ -532,3 +532,56 @@ var longestCommonPrefix = function (strs) {
 }
 longestCommonPrefix(['aaafsd', 'aawwewer', 'aaddfff'])
 ```
+
+## 拼接数组 brick1,brick2&brick3
+
+```js
+var arrs = [{ name: 'brick1' }, { name: 'brick2' }, { name: 'brick3' }]
+arrs.reduce((a, b, index, array) => {
+	if (index === 0) {
+		return b.name
+	} else if (index === arrs.length - 1) {
+		return a + '&' + b.name
+	} else {
+		return a + ',' + b.name
+	}
+}, '')
+```
+
+## 数组扁平化
+
+```js
+// 解一
+var arr = [1, [2, [3, 4]]]
+function flatten(arr) {
+	let result = []
+	for (var i = 0; i < arr.length; i++) {
+		if (Array.isArray(arr[i])) {
+			result = result.concat(flatten(arr[i]))
+		} else {
+			result.push(arr[i])
+		}
+	}
+	return result
+}
+// 解二
+function flatten(arr) {
+	return arr.reduce((pre, cur) => {
+		return pre.concat(Array.isArray(cur) ? flatten(cur) : cur)
+	}, [])
+}
+// 解三
+function flatten(arr) {
+	return arr.toString().split(',')
+}
+// 解四
+function flatten(arr) {
+	return arr.flat(Infinity)
+}
+// 解五
+function flatten(arr) {
+	let str = JSON.stringify(arr)
+	str = str.replace(/(\[|\])/g, '')
+	return JSON.parse('[' + str + ']')
+}
+```

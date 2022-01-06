@@ -49,6 +49,14 @@ module.exports = {
 					children: ['webpack1', 'webpack2', 'webpack3'],
 				},
 				{
+					title: 'CSS篇',
+					children: ['css']
+				},
+				{
+					title: 'GIT篇',
+					children: ['git']
+				},
+				{
 					title: '优化篇',
 					children: ['optimizaion'],
 				},
@@ -95,7 +103,14 @@ module.exports = {
 		search: true,
 		searchMaxSuggestions: 10,
 	},
-  plugins: [['vuepress-plugin-code-copy', true]],
+	plugins: [
+		[
+			'vuepress-plugin-code-copy',
+			{
+				color: '#fff',
+			},
+		],
+	],
 	markdown: {
 		lineNumbers: true,
 	},

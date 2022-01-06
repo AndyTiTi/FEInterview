@@ -2,6 +2,21 @@
 title: 第一章
 ---
 
+## SSR？
+
+## 一个网站 SEO 怎么优化
+
+## 用不了 Lighthouse 怎么办？
+
+可以下载 npm 包
+还有 WebPageTest
+
+## 用户活跃度几千万的网站如何优化
+
+## 性能优优化方法都有哪些？
+
+怎么测量的，怎么优化的，优化前后的对比
+
 ## 前端加载优化你都做过哪些？
 
 1. 首屏优化
@@ -48,17 +63,17 @@ function checkWebp() {
 		return false
 	}
 }
-export function getWebImageUrl(url){
-  if(!url){
-    throw Error("url 不能为空")
-  }
-  if(url.startwWith("data:")){
-    return url;
-  }
+export function getWebImageUrl(url) {
+	if (!url) {
+		throw Error('url 不能为空')
+	}
+	if (url.startwWith('data:')) {
+		return url
+	}
 
-  if(!checkWebp()){
-    return url;
-  }
-  return url+"?x-oss-pong.png"
+	if (!checkWebp()) {
+		return url
+	}
+	return url + '?x-oss-pong.png'
 }
 ```

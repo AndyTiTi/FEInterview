@@ -2,7 +2,7 @@
 title: 第一章
 ---
 
-## 第一题：TS 和 ES6 区别?
+## TS 和 ES6 区别?
 
 `TypeScript`是由微软开发的编程语言，是 JavaScript 的超集，本质还是要转化为 JavaScript。
 
@@ -14,7 +14,7 @@ title: 第一章
 4. 类、接口的使用更易于构建和维护组件；
 5. 重构更方便可靠，适合大型项目；
 
-## 第二题：type 和 interface 区别？
+## type 和 interface 区别？
 
 `type 只是一个类型别名，并不会产生类型。`所以其实 type 和 interface 其实不是同一个概念，其实他们俩不应该用来比较的，只是有时候用起来看着类似。
 
@@ -40,3 +40,9 @@ title: 第一章
 2. 用 type 交叉类型 & 可让类型中的成员合并
 3. 接口可以 extends 一个或多个接口或类，也可以继承 type，但 type 类型没有继承功能。**一般接口继承类和 type 的应用场景很少见。**
 4. 定义两个同名的 interface 会合并声明，定义两个同名的 type 会出现编译错误
+
+## Pick 和 Omit
+
+## 实现一个 Typescript 里的 Pick
+
+type Pick<T, K extends keyof T> = { [P in K]: T[P] }
