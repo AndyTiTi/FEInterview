@@ -9,8 +9,8 @@ function limitLoad(urls, handler, limit) {
 	})
 	let p = Promise.race(promises)
 	for (let i = 0; i < sequence.length; i++) {
-		p = p.then((res) => {
-			promises[res] = handler(sequence[i]).then(() => {
+    p = p.then((res) => {
+      promises[res] = handler(sequence[i]).then(() => {
 				return res
 			})
 			return Promise.race(promises)

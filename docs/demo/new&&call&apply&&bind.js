@@ -1,8 +1,7 @@
 // 手写new
-function _new() {
-	const Con = [].shift.call(arguments)
-	let obj = Object.create(Con.prototype)
-	let res = Con.call(obj, ...arguments)
+function _new(context, ...args) {
+	let obj = Object.create(context.prototype)
+	let res = context.call(obj, ...args)
 	return res instanceof Object ? res : obj
 }
 function Person(name, age) {
@@ -44,34 +43,20 @@ Function.prototype.myApply = function (context) {
 // 1. 改变this指向
 // 2. 第一个参数是this的值，后面的参数是函数接收的参数
 // 3. 返回值不变
-Function.prototype.myBind = function () {
+Function.prototype.myBind = function (context, ...args) {
 	// 拿到原函数
-	var _this = this,
-		context = arguments[0],
-		args = Array.prototype.slice.call(arguments, 1)
-	return function F() {
-		// 这里的arguments是返回的函数的入参，例如：test.myBind({name:'zs'},1,22,333)(4,55) 4,55就是arguments
-		console.log(_this, context, args, arguments)
-		if (this instanceof F) {
-			return new _this(...args, ...arguments)
-		}
+	var _this = this
+	return function () {
 		return _this.apply(
 			context,
 			args.concat(Array.prototype.slice.call(arguments))
 		)
 	}
 }
-function test(a, b, c) {
-	console.log(a, b, c)
-	return '哈默'
+function person(a, b) {
+	console.log(this.name, this.age, a, b)
 }
-function logs() {
-	console.log(this.name, this.age)
-}
-var b = { name: 123, age: 20 }
-// logs.myBind(b)()
-const boundTest = test.myBind({ name: '哈默' }, 7, 77, 777)
-const boundResult = boundTest(8, 88)
-const result = test(1, 10, 100)
-console.log('result', result)
-console.log('boundResult', boundResult)
+
+var b = { name: 'zs', age: 30 }
+var boundResult = person.myBind(b, 'to', 'from')
+console.log('boundResult', boundResult())

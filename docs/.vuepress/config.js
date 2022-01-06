@@ -95,6 +95,10 @@ module.exports = {
 		search: true,
 		searchMaxSuggestions: 10,
 	},
+  plugins: [['vuepress-plugin-code-copy', true]],
+	markdown: {
+		lineNumbers: true,
+	},
 	configureWebpack: {
 		resolve: {
 			alias: {

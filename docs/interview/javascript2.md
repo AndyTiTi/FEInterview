@@ -1,5 +1,5 @@
 ---
-title: 第一章
+title: 第二章
 ---
 
 ## 查看浏览器的对于 API 的支持
@@ -64,7 +64,7 @@ alert(b.name)
 alert(b.id) // undefined
 ```
 
-3. 混合继承[缺点：继承了父类 2 次模板，继承了 1 次父类的原型对象]
+3. 组合继承[缺点：继承了父类 2 次模板，继承了 1 次父类的原型对象]
 
 ```javascript
 function Person(name, age) {
@@ -94,10 +94,8 @@ alert(b.id) // 10
 
 ```javascript
 function extend(Child, Parent) {
-	// 创建一个空函数，进行中转父类的原型对象
-	var F = new Function()
-	F.prototype = Parent.prototype
-	Child.prototype = new F()
+	// 这里改用 Object.create 就可以减少组合继承中多进行一次构造的过程
+	Child.prototype = Object.create(Parent.prototype)
 	Child.prototype.constructor = Child
 }
 function Person(name, age) {
@@ -189,35 +187,26 @@ class Apple extends Fruit {
 }
 ```
 
-## 实现 new
+## 获取数组最大值最小值
 
-```javascript
-function create() {
-	// 1、获得构造函数，同时删除 arguments 中第一个参数
-	Con = [].shift.call(arguments)
-	// 2、创建一个空的对象并链接到原型，obj 可以访问构造函数原型中的属性
-	let obj = Object.create(Con.prototype)
-	// 3、绑定 this 实现继承，obj 可以访问到构造函数中的属性
-	let ret = Con.apply(obj, arguments)
-	// 4、优先返回构造函数返回的对象
-	return ret instanceof Object ? ret : obj
-}
-function Person() {
-	this.name = '123'
-}
-var b = create(Person)
+```js
+let arr = [13, 6, 5, 10, 16]
+const max = Math.max.apply(Math, arr)
+const min = Math.min.apply(Math, arr)
+console.log(max)
+console.log(min)
 ```
 
 ## 实现 instanceOf ?
 
 ```javascript
 function myInstanceof(left, right) {
-	let prototype = right.prototype
-	left = left.__proto__
+	if (typeof left !== 'object' || left === null) return false
+	let proto = Object.getPrototypeOf(left)
 	while (true) {
-		if (left === null || left === undefined) return false
-		if (prototype === left) return true
-		left = left.__proto__
+		if (proto === null) return false
+		if (proto === right.prototype) return true
+		proto = Object.getPrototypeOf(proto)
 	}
 }
 function Toy() {
@@ -225,37 +214,321 @@ function Toy() {
 }
 var a = new Toy()
 console.log(myInstanceof(a, Toy))
+```
 
-function Person(name) {
-	this.name = name
+## 实现 new
+
+```javascript
+function _new(constructor, ...args) {
+	if (typeof constructor !== 'function') {
+		throw 'constructor must be a function'
+	}
+	// 1、创建一个空的对象并链接到原型，obj 可以访问构造函数原型中的属性
+	let obj = Object.create(constructor.prototype)
+	// 2、绑定 this 实现继承，obj 可以访问到构造函数中的属性
+	let ret = constructor.call(obj, ...args)
+	// 3、优先返回构造函数返回的对象
+	return ret instanceof Object ? ret : obj
 }
-var man = new Person()
-man instanceof Person
-// true
-Person.prototype.isPrototypeOf(man)
-// true
+function Person(name, age) {
+	this.name = name
+	this.age = age
+}
+var p = _new(Person, 'zs', 13)
+console.log(p)
 ```
 
 ## 实现 call
 
 ```js
-Function.prototype.newCall = function (context) {
-	console.log(this)
+Function.prototype.newCall = function (context, ...args) {
 	if (typeof this !== 'function') {
 		throw new TypeError('Error')
 	}
-	context = context || window
+	var context = context || window
 	context.fn = this
-	const args = [...arguments].slice(1)
-	const result = context.fn(...args)
+	const result = eval('context.fn(...args)')
 	delete context.fn
 	return result
 }
 
-function person() {
-	console.log(this.name)
+function person(a, b) {
+	console.log(this.name, this.age, a, b)
 }
 
-var b = { name: 'zs' }
-person.newCall(b)
+var b = { name: 'zs', age: 30 }
+person.newCall(b, 'to', 'from')
+```
+
+## 实现 apply
+
+```js
+Function.prototype.newApply = function (context, args) {
+	if (typeof this !== 'function') {
+		throw new TypeError('Error')
+	}
+	var context = context || window
+	context.fn = this
+	const result = eval('context.fn(...args)')
+	delete context.fn
+	return result
+}
+
+function person(a, b) {
+	console.log(this.name, this.age, a, b)
+}
+
+var b = { name: 'zs', age: 30 }
+person.newApply(b, ['to', 'from'])
+```
+
+## 实现 bind
+
+```js
+Function.prototype.myBind = function (context, ...args) {
+	// 拿到原函数
+	var _this = this
+	return function () {
+		return _this.apply(
+			context,
+			args.concat(Array.prototype.slice.call(arguments))
+		)
+	}
+}
+function person(a, b) {
+	console.log(this.name, this.age, a, b)
+}
+
+var b = { name: 'zs', age: 30 }
+var boundResult = person.myBind(b, 'to', 'from')
+console.log('boundResult', boundResult())
+```
+
+## 实现深拷贝
+
+> 丐版
+
+```js
+function deepClone(target) {
+	if (typeof target !== 'object' || target === null) {
+		throw new Error('type is invalidate')
+	}
+	var tar = Array.isArray(target) ? [] : {}
+	for (var k in target) {
+		if (target.hasOwnProperty(k)) {
+			if (typeof target[k] === 'object' && target[k] !== null) {
+				tar[k] = deepClone(target[k])
+			} else {
+				tar[k] = target[k]
+			}
+		}
+	}
+	return tar
+}
+```
+
+> 改进版（改进后递归实现）
+
+通过四点相关的理论告诉你分别应该怎么做?
+
+1. 针对能够遍历对象的不可枚举属性以及 Symbol 类型，我们可以使用 Reflect.ownKeys 方法；
+
+2. 当参数为 Date、RegExp 类型，则直接生成一个新的实例返回；
+
+3. 利用 Object 的 getOwnPropertyDescriptors 方法可以获得对象的所有属性，以及对应的特性，顺便结合 Object 的 create 方法创建一个新对象，并继承传入原对象的原型链；
+
+4. 利用 WeakMap 类型作为 Hash 表，因为 WeakMap 是弱引用类型，可以有效防止内存泄漏（你可以关注一下 Map 和 weakMap 的关键区别，这里要用 weakMap），作为检测循环引用很有帮助，如果存在循环，则引用直接返回 WeakMap 存储的值。
+
+```js
+const isComplexDataType = (obj) =>
+	(typeof obj === 'object' || typeof obj === 'function') && obj !== null
+const deepClone = function (obj, hash = new WeakMap()) {
+	//日期对象直接返回一个新的日期对象
+	if (obj.constructor === Date) return new Date(obj)
+	//正则对象直接返回一个新的正则对象
+	if (obj.constructor === RegExp) return new RegExp(obj)
+	//如果循环引用了就用 weakMap 来解决
+	if (hash.has(obj)) return hash.get(obj)
+	let allDesc = Object.getOwnPropertyDescriptors(obj)
+	//遍历传入参数所有键的特性
+	let cloneObj = Object.create(Object.getPrototypeOf(obj), allDesc)
+	//继承原型链
+	hash.set(obj, cloneObj)
+	for (let key of Reflect.ownKeys(obj)) {
+		cloneObj[key] =
+			isComplexDataType(obj[key]) && typeof obj[key] !== 'function'
+				? deepClone(obj[key], hash)
+				: obj[key]
+	}
+	return cloneObj
+}
+
+// 下面是验证代码
+let obj = {
+	num: 0,
+	str: '',
+	boolean: true,
+	unf: undefined,
+	nul: null,
+	obj: { name: '我是一个对象', id: 1 },
+	arr: [0, 1, 2],
+	func: function () {
+		console.log('我是一个函数')
+	},
+	date: new Date(0),
+	reg: new RegExp('/我是一个正则/ig'),
+	[Symbol('1')]: 1,
+}
+Object.defineProperty(obj, 'innumerable', {
+	enumerable: false,
+	value: '不可枚举属性',
+})
+obj = Object.create(obj, Object.getOwnPropertyDescriptors(obj))
+obj.loop = obj // 设置loop成循环引用的属性
+let cloneObj = deepClone(obj)
+cloneObj.arr.push(4)
+console.log('obj', obj)
+console.log('cloneObj', cloneObj)
+```
+
+## 实现 JSON.stringify()
+
+```js
+function jsonStringify(data) {
+	let type = typeof data
+
+	if (type !== 'object') {
+		let result = data
+		//data 可能是基础数据类型的情况在这里处理
+		if (Number.isNaN(data) || data === Infinity) {
+			//NaN 和 Infinity 序列化返回 "null"
+			result = 'null'
+		} else if (
+			type === 'function' ||
+			type === 'undefined' ||
+			type === 'symbol'
+		) {
+			// 由于 function 序列化返回 undefined，因此和 undefined、symbol 一起处理
+			return undefined
+		} else if (type === 'string') {
+			result = '"' + data + '"'
+		}
+		return String(result)
+	} else if (type === 'object') {
+		if (data === null) {
+			return 'null' // 第01讲有讲过 typeof null 为'object'的特殊情况
+		} else if (data.toJSON && typeof data.toJSON === 'function') {
+			return jsonStringify(data.toJSON())
+		} else if (data instanceof Array) {
+			let result = []
+			//如果是数组，那么数组里面的每一项类型又有可能是多样的
+			data.forEach((item, index) => {
+				if (
+					typeof item === 'undefined' ||
+					typeof item === 'function' ||
+					typeof item === 'symbol'
+				) {
+					result[index] = 'null'
+				} else {
+					result[index] = jsonStringify(item)
+				}
+			})
+			result = '[' + result + ']'
+			return result.replace(/'/g, '"')
+		} else {
+			// 处理普通对象
+			let result = []
+			Object.keys(data).forEach((item, index) => {
+				if (typeof item !== 'symbol') {
+					//key 如果是 symbol 对象，忽略
+					if (
+						data[item] !== undefined &&
+						typeof data[item] !== 'function' &&
+						typeof data[item] !== 'symbol'
+					) {
+						//键值如果是 undefined、function、symbol 为属性值，忽略
+						result.push(
+							'"' + item + '"' + ':' + jsonStringify(data[item])
+						)
+					}
+				}
+			})
+			return ('{' + result + '}').replace(/'/g, '"')
+		}
+	}
+}
+```
+
+手工实现一个 JSON.stringify 方法的基本代码如上面所示，有几个问题需要注意一下：
+
+1. 由于 function 返回 'null'， 并且 typeof function 能直接返回精确的判断，故在整体逻辑处理基础数据类型的时候，会随着 undefined，symbol 直接处理了；
+
+2. 由于 01 讲说过 typeof null 的时候返回'object'，故 null 的判断逻辑整体在处理引用数据类型的逻辑里面；
+
+3. 关于引用数据类型中的数组，由于数组的每一项的数据类型又有很多的可能性，故在处理数组过程中又将 undefined，symbol，function 作为数组其中一项的情况做了特殊处理；
+
+4. 同样在最后处理普通对象的时候，key （键值）也存在和数组一样的问题，故又需要再针对上面这几种情况（undefined，symbol，function）做特殊处理；
+
+5. 最后在处理普通对象过程中，对于循环引用的问题暂未做检测，如果是有循环引用的情况，需要抛出 Error；
+
+6. 根据官方给出的 JSON.stringify 的第二个以及第三个参数的实现，本段模拟实现的代码并未实现，如果有兴趣你可以自己尝试一下。
+
+整体来说这段代码还是比较复杂的，如果在面试过程中让你当场手写，其实整体还是需要考虑很多东西的。当然上面的代码根据每个人的思路不同，你也可以写出自己认为更优的代码，比如你也可以尝试直接使用 switch 语句，来分别针对特殊情况进行处理，整体写出来可能看起来会比上面的写法更清晰一些，这些可以根据自己情况而定。
+
+## 实现 promise 重试函数
+
+> 可以设置时间间隔和次数 function retry(fn, times, delay) {}
+
+```js
+function fetchData() {
+	return new Promise(function (resolve, reject) {
+		setTimeout(function () {
+			reject('server unavailable')
+		}, 500)
+	})
+}
+
+function retry(fn, times, delay) {
+	var err = null
+	return new Promise(function (resolve, reject) {
+		var attempt = function () {
+			fn()
+				.then(resolve)
+				.catch(function (err) {
+					if (0 == times) {
+						reject(err)
+					} else {
+						console.log(`Attempt #${times} failed`)
+						times--
+						setTimeout(function () {
+							attempt()
+						}, delay)
+					}
+				})
+		}
+		attempt()
+	})
+}
+retry(fetchData, 3, 100)
+```
+
+## 求最大公共前缀
+
+> 如 ['aaafsd', 'aawwewer', 'aaddfff'] => 'aa'
+
+```js
+var longestCommonPrefix = function (strs) {
+	if (!strs.length) return ''
+	let res = strs[0]
+	for (ch of strs) {
+		for (let i = 0; i < res.length; i++) {
+			if (ch[i] !== res[i]) {
+				res = res.slice(0, i)
+				break
+			}
+		}
+	}
+	return res
+}
+longestCommonPrefix(['aaafsd', 'aawwewer', 'aaddfff'])
 ```

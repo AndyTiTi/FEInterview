@@ -85,10 +85,6 @@ type Pick<T, K extends keyof T> = { [P in K]: T[P] }
 
 ## 手写：并发只能 10 个
 
-## 算法题：求最大公共前缀，如 ['aaafsd', 'aawwewer', 'aaddfff'] => 'aa'
-
-## 写一个 promise 重试函数，可以设置时间间隔和次数。function foo(fn, interval, times) {}
-
 [1]一文吃透 React 事件机制原理: https://toutiao.io/posts/28of14w/preview
 
 [2]flex 语法篇: https://www.ruanyifeng.com/blog/2015/07/flex-grammar.html

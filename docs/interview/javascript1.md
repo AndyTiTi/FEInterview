@@ -4,9 +4,9 @@ title: 第一章
 
 ## JavaScript 数据类型
 
-值类型(基本类型)：字符串（String）、数字(Number)、布尔(Boolean)、对空（Null）、未定义（Undefined）、Symbol。
+值类型(基本类型)：String、Number、Boolean、Null、Undefined、Symbol、BigInt
 
-引用数据类型：对象(Object)、数组(Array)、函数(Function)。
+引用数据类型：Object [ Array、Function、RegExp、Date、Math ]
 
 > 注：Symbol 是 ES6 引入了一种新的原始数据类型，表示独一无二的值。
 
@@ -92,6 +92,33 @@ parent2()
 
 ![image](/caller.png)
 
+## a == 1 && a == 2 && a ==3
+
+```js
+var a = {
+	value: 0,
+	valueOf: function () {
+		this.value++
+		return this.value
+	},
+}
+console.log(a == 1 && a == 2 && a == 3)
+```
+
+## 数据类型检测
+
+```js
+function getType(obj) {
+	let type = typeof obj
+	if (type !== 'object') {
+		return type
+	}
+	return Object.prototype.toString
+		.call(obj)
+		.replace(/^\[object (\S+)\]$/, '$1')
+}
+```
+
 ## 数据处理
 
 某公司 1 到 12 月份的销售额存在一个对象里面 如下：{1:222, 2:123, 5:888}，请把数据处理为如下结构：[222, 123, null, null, 888, null, null, null, null, null, null, null]
@@ -156,7 +183,7 @@ Number('') -> 返回的是 0
 
 ## 冒泡和捕获
 
-```javascript
+```js
 ;<ul id="ul">
 	<li>1</li>
 	<li>2</li>

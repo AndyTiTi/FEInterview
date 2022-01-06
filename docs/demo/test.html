@@ -66,13 +66,13 @@
 		</script>
 		<script>
 			function unique(arr) {
-        // indexOf 只记录item第一次出现在数组中的下标
+				// indexOf 只记录item第一次出现在数组中的下标
 				var res = arr.filter(function (item, index, array) {
 					return array.indexOf(item) === index
 				})
 				return res
 			}
-      debugger
+			// debugger
 			unique([1, 2, 2, 5, 5, 4, 1, 1])
 		</script>
 		<script>
@@ -90,6 +90,25 @@
 					alert(`内容为${target.innerHTML},索引为${index}`)
 				}
 			})
+		</script>
+		<script>
+			function getStart(arr) {
+				let index = 0
+				let set = new Set()
+				var loop = function () {
+					arr.forEach((item) => {
+						set.add(item[index])
+					})
+					index++
+				}
+        debugger
+				if (set.size === index) {
+					loop()
+				} else {
+					return [...set].join('')
+				}
+			}
+			getStart(['aaafsd', 'aawwewer', 'aaddfff'])
 		</script>
 	</body>
 </html>
