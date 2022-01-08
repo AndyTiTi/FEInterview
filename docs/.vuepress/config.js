@@ -3,12 +3,12 @@ const path = require('path')
 // const rootPath = path.dirname(__dirname)
 // const { sideBarTool } = require(path.join(__dirname, './utils/index.js'))
 
-// // 需要排除的一些目录
+// 需要排除的一些目录
 // let unDirIncludes = ['node_modules', 'assets', 'public', 'dist']
-// // 只需要处理后缀的文件类型
+// 只需要处理后缀的文件类型
 // let SuffixIncludes = ['md', 'html']
-// //使用方法生生成侧边栏
-// // 侧边栏
+//使用方法生生成侧边栏
+// 侧边栏
 // let sidebar = sideBarTool.genSideBarGroup(
 // 	rootPath,
 // 	unDirIncludes,
@@ -24,6 +24,7 @@ module.exports = {
 			{ text: 'Introduce', link: '/other/' },
 			{ text: '前端知识体系', link: '/interview/vue1' },
 		],
+		sidebarDepth: 3,
 		// sidebar,
 		sidebar: {
 			'/other/': ['', '/other/installUse', '/other/webpack'],
@@ -49,12 +50,16 @@ module.exports = {
 					children: ['webpack1', 'webpack2', 'webpack3'],
 				},
 				{
+					title: 'LeetCode篇',
+					children: ['leetcode'],
+				},
+				{
 					title: 'CSS篇',
-					children: ['css']
+					children: ['css'],
 				},
 				{
 					title: 'GIT篇',
-					children: ['git']
+					children: ['git'],
 				},
 				{
 					title: '优化篇',
