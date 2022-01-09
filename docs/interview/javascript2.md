@@ -585,3 +585,117 @@ function flatten(arr) {
 	return JSON.parse('[' + str + ']')
 }
 ```
+
+## 手写 Promise.all
+
+## 用 ES5 实现私有变量
+
+```js
+function Person(name) {
+	var _name = name
+	this.getName = function () {
+		console.log(_name)
+	}
+}
+
+var p = new Person('bibibi')
+
+console.log(p._name) //undefined
+console.log(p.getName()) //bibibi
+```
+
+## 实现一个 fill 函数，不能用循环
+
+```js
+Array.prototype.myFill = function (val, start = 0, end = this.length) {
+	if (start < end) {
+		this[start] = val
+		this.myFill(val, start + 1, end)
+	}
+}
+```
+
+## 手写：并发只能 10 个
+
+```js
+const urls = [
+	{ info: 'task1', time: 1000 },
+	{ info: 'task2', time: 2000 },
+	{ info: 'task3', time: 3000 },
+	{ info: 'task4', time: 4000 },
+	{ info: 'task5', time: 5000 },
+	{ info: 'task6', time: 6000 },
+	{ info: 'task7', time: 7000 },
+	{ info: 'task8', time: 8000 },
+]
+function loadImg(url) {
+	return new Promise((resolve, reject) => {
+		console.log('--- ' + url.info + ' start!')
+		setTimeout(() => {
+			console.log(url.info + ' OK!')
+			resolve()
+		}, url.time)
+	})
+}
+// 原生写法
+function limitLoad(urls, handler, limit) {
+	const sequence = [].concat(urls)
+	let promises = []
+
+	promises = sequence.splice(0, limit).map((url, index) => {
+		return handler(url).then(() => {
+			return index
+		})
+	})
+	let p = Promise.race(promises)
+	for (let i = 0; i < sequence.length; i++) {
+		p = p.then((res) => {
+			promises[res] = handler(sequence[i]).then(() => {
+				return res
+			})
+			return Promise.race(promises)
+		})
+	}
+}
+
+limitLoad(urls, loadImg, 3)
+
+// class写法
+class PromiseQueue {
+	constructor(options = {}) {
+		this.concurrency = options.concurrency || 1
+		this.currentCount = 0
+		this.pendingList = []
+	}
+
+	add(task) {
+		this.pendingList.push(task)
+		this.run()
+	}
+
+	run() {
+		if (
+			this.pendingList.length === 0 ||
+			this.currentCount === this.concurrency
+		) {
+			return
+		}
+		const fn = this.pendingList.shift()
+		this.currentCount++
+		const promise = fn()
+		promise
+			.then(this.complateOne.bind(this))
+			.catch(this.complateOne.bind(this))
+	}
+
+	complateOne() {
+		this.currentCount--
+		this.run()
+	}
+}
+
+var queue = new PromiseQueue({ concurrency: 3 })
+urls.forEach((url) => {
+	queue.add(() => loadImg(url))
+})
+```

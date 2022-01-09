@@ -47,7 +47,7 @@ module.exports = {
 				},
 				{
 					title: 'Webpack篇',
-					children: ['webpack1', 'webpack2', 'webpack3'],
+					children: ['webpack'],
 				},
 				{
 					title: 'LeetCode篇',

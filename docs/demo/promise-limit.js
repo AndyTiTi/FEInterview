@@ -9,8 +9,8 @@ function limitLoad(urls, handler, limit) {
 	})
 	let p = Promise.race(promises)
 	for (let i = 0; i < sequence.length; i++) {
-    p = p.then((res) => {
-      promises[res] = handler(sequence[i]).then(() => {
+		p = p.then((res) => {
+			promises[res] = handler(sequence[i]).then(() => {
 				return res
 			})
 			return Promise.race(promises)
@@ -32,9 +32,47 @@ function loadImg(url) {
 		console.log('--- ' + url.info + ' start!')
 		setTimeout(() => {
 			console.log(url.info + ' OK!')
-      resolve()
+			resolve()
 		}, url.time)
 	})
 }
 
-limitLoad(urls, loadImg, 3)
+// limitLoad(urls, loadImg, 3)
+
+class PromiseQueue {
+	constructor(options = {}) {
+		this.concurrency = options.concurrency || 1
+		this.currentCount = 0
+		this.pendingList = []
+	}
+
+	add(task) {
+		this.pendingList.push(task)
+		this.run()
+	}
+
+	run() {
+		if (
+			this.pendingList.length === 0 ||
+			this.currentCount === this.concurrency
+		) {
+			return
+		}
+		const fn = this.pendingList.shift()
+		this.currentCount++
+		const promise = fn()
+		promise
+			.then(this.complateOne.bind(this))
+			.catch(this.complateOne.bind(this))
+	}
+
+	complateOne() {
+		this.currentCount--
+		this.run()
+	}
+}
+
+var promise = new PromiseQueue({ concurrency: 3 })
+urls.forEach((url) => {
+	promise.add(() => loadImg(url))
+})

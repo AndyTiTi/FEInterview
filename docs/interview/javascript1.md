@@ -131,6 +131,8 @@ console.log(a == 1 && a == 2 && a == 3)
 
 ## 数据类型检测
 
+![typof](/typeof.png)
+
 ```js
 function getType(obj) {
 	let type = typeof obj
@@ -160,6 +162,7 @@ console.log(result)
 ## 为什么浏览器要有事件循环机制？
 
 因为 JS 本事是单线程异步非阻塞的，当遇到一些执行耗时长的任务时，会导致主程序阻塞，所以会将一些异步任务放入 eventLoop 进行存放，等待处理结果返回后再根据一定规则去执行相应的回调。
+[一次弄懂 Event Loop（彻底解决此类面试问题）](https://juejin.cn/post/6844903764202094606?utm_source=gold_browser_extension)
 [详解 JavaScript 中的 Event Loop（事件循环）机制](https://zhuanlan.zhihu.com/p/33058983)
 
 ## 为什么要引入微任务的概念？
