@@ -2,9 +2,49 @@
 title: 第一章
 ---
 
+## React 生命周期
+
+![react 15](/react15.jpg)
+![react 16](/react16.jpg)
+
 ## React 事件机制
 
 [一文吃透 React 事件机制原理](https://toutiao.io/posts/28of14w/preview)
+
+## 说说 react 的渲染过程
+
+![react 16](/react-process.jpg)
+
+**react 的核心可以用 ui=fn(state)来表示，更详细可以用**
+
+```js
+const state = reconcile(update)
+const UI = commit(state)
+```
+
+**上面的 fn 可以分为如下一个部分：**
+
+-   Scheduler（调度器）： 排序优先级，让优先级高的任务先进行 reconcile
+-   Reconciler（协调器）： 找出哪些节点发生了改变，并打上不同的 Flags（旧版本 react 叫 Tag）
+-   Renderer（渲染器）： 将 Reconciler 中打好标签的节点渲染到视图上
+
+**那这些模块是怎么配合工作的呢：**
+
+-   首先 jsx 经过 babel 的 ast 词法解析之后编程 React.createElement，React.createElement 函数执行之后就是 jsx 对象，也被称为 virtual-dom。
+-   不管是在首次渲染还是更新状态的时候，这些渲染的任务都会经过 Scheduler 的调度，Scheduler 会根据任务的优先级来决定将哪些任务优先进入 render 阶段，比如用户触发的更新优先级非常高，如果当前正在进行一个比较耗时的任务，则这个任务就会被用户触发的更新打断，在 Scheduler 中初始化任务的时候会计算一个过期时间，不同类型的任务过期时间不同，优先级越高的任务，过期时间越短，优先级越低的任务，过期时间越长。在最新的 Lane 模型中，则可以更加细粒度的根据二进制 1 的位置，来决定任务的优先级，通过二进制的融合和相交，判断任务的优先级是否足够在此次 render 的渲染。Scheduler 会分配一个时间片给需要渲染的任务，如果是一个非常耗时的任务，如果在一个时间片之内没有执行完成，则会从当前渲染到的 Fiber 节点暂停计算，让出执行权给浏览器，在之后浏览器空闲的时候从之前暂停的那个 Fiber 节点继续后面的计算，这个计算的过程就是计算 Fiber 的差异，并标记副作用。详细可阅读往期课件和视频讲解，往期文章在底部。
+-   在 render 阶段：render 阶段的主角是 Reconciler，在 mount 阶段和 update 阶段，它会比较 jsx 和当前 Fiber 节点的差异（diff 算法指的就是这个比较的过程），将带有副作用的 Fiber 节点标记出来，这些副作用有 Placement（插入）、Update（更新）、Deletetion（删除）等，而这些带有副作用 Fiber 节点会加入一条 EffectList 中，在 commit 阶段就会遍历这条 EffectList，处理相应的副作用，并且应用到真实节点上。而 Scheduler 和 Reconciler 都是在内存中工作的，所以他们不影响最后的呈现。
+-   在 commit 阶段：会遍历 EffectList，处理相应的生命周期，将这些副作用应用到真实节点，这个过程会对应不同的渲染器，在浏览器的环境中就是 react-dom，在 canvas 或者 svg 中就是 reac-art 等。
+
+**另外我们也可以从首次渲染和更新的时候看在 render 和 commit 这两个子阶段是如果工作的：**
+
+-   mount 时：
+    1. 在 render 阶段会根据 jsx 对象构建新的 workInProgressFiber 树，不太了解 Fiber 双缓存的可以查看往期文章 Fiber 架构，然后将相应的 fiber 节点标记为 Placement，表示这个 fiber 节点需要被插入到 dom 树中，然后会这些带有副作用的 fiber 节点加入一条叫做 Effect List 的链表中。
+    1. 在 commit 阶段会遍历 render 阶段形成的 Effect List，执行链表上相应 fiber 节点的副作用，比如 Placement 插入，或者执行 Passive（useEffect 的副作用）。将这些副作用应用到真实节点上
+-   update 时：
+    1. 在 render 阶段会根据最新状态的 jsx 对象对比 current Fiber，再构建新的 workInProgressFiber 树，这个对比的过程就是 diff 算法，diff 算法又分成单节点的对比和多节点的对比，不太清楚的同学参见之前的文章 diff 算法 ，对比的过程中同样会经历收集副作用的过程，也就是将对比出来的差异标记出来，加入 Effect List 中，这些对比出来的副作用例如：Placement（插入）、Update(更新)、Deletion（删除）等。
+    1. 在 commit 阶段同样会遍历 Effect List，将这些 fiber 节点上的副作用应用到真实节点上
+
+![react-performance.webp](/react-performance.webp.jpg)
 
 ## React 性能优化思路？
 

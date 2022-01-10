@@ -157,7 +157,7 @@ const result = Array.from({ length: 12 }).map(
 console.log(result)
 ```
 
-![image](/b4f_b.webp)
+![image](/b4f_b.jpg)
 
 ## 为什么浏览器要有事件循环机制？
 

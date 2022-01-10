@@ -224,7 +224,7 @@ A 收到释放请求后，向 B 发送确认应答，此时 A 进入 TIME-WAIT �
 -   请求头和消息实体之间有一个 CRLF 分隔
 -   根据实际请求需要可能包含一个消息实体 一个请求报文例子如下
 
-![image](/http-content.webp)
+![image](/http-content.jpg)
 
 #### HTTP 响应报文结构
 
@@ -233,7 +233,7 @@ A 收到释放请求后，向 B 发送确认应答，此时 A 进入 TIME-WAIT �
 -   响应头部和响应实体之间用一个 CRLF 分隔
 -   最后是一个可能的消息实体 响应报文例子如下
 
-![image](/http-content7.webp)
+![image](/http-content7.jpg)
 
 ## HTTP 协议的瓶颈
 
