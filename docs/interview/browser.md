@@ -436,6 +436,189 @@ render 树可能又得重新重绘或者回流了，这就造成了一些没有�
 
 这可能也就是浏览器的一种优化机制
 
+## 什么是时间分片（Time Slicing）？
+
+> 引言 根据 W3C 性能小组的介绍，超过 50ms 的任务就是长任务。
+
+![browser-delay](/browser-delay.jpg)
+根据上图我们可以知道，当延迟超过 100ms，用户就会察觉到轻微的延迟。
+
+所以为了避免这种情况，我们可以使用两种方案，一种是 Web Worker，另一种是时间分片（Time Slicing）。
+
+**Web Worker**
+
+```js
+const testWorker = new Worker('./worker.js')
+setTimeout((_) => {
+	testWorker.postMessage({})
+	testWorker.onmessage = function (ev) {
+		console.log(ev.data)
+	}
+}, 5000)
+
+// worker.js
+self.onmessage = function () {
+	const start = performance.now()
+	while (performance.now() - start < 1000) {}
+	postMessage('done!')
+}
+```
+
+我们可以看看使用了 Web Worker 之后的优化效果：
+![browser-service-worker](/browser-service-worker.jpg)
+
+**时间分片（Time Slicing）**
+
+时间分片是一项使用得比较广的技术方案，它的本质就是将长任务分割为一个个执行时间很短的任务，然后再一个个地执行。
+
+这个概念在我们日常的性能优化上是非常有用的。
+
+例如当我们需要在页面中一次性插入一个长列表时（当然，通常这种情况，我们会使用分页去做）。
+
+如果利用时间分片的概念来实现这个功能，我们可以使用 requestAnimationFrame+DocumentFragment
+
+关于这两个 API，我同样不会做详细的介绍，有兴趣的可以查看 MDN requestAnimationFrame 跟 MDN DocumentFragment。
+
+这里有两个 DEMO，大家可以对比下流畅程度：
+
+**未使用时间分片：**
+
+```html
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+	}
+	.list {
+		width: 60vw;
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+</style>
+<ul class="list"></ul>
+<script>
+	'use strict'
+	let list = document.querySelector('.list')
+	let total = 100000
+	for (let i = 0; i < total; ++i) {
+		let item = document.createElement('li')
+		item.innerText = `我是${i}`
+		list.appendChild(item)
+	}
+</script>
+```
+
+**使用时间分片：**
+
+```html
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+	}
+	.list {
+		width: 60vw;
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+</style>
+<ul class="list"></ul>
+<script>
+	'use strict'
+	let list = document.querySelector('.list')
+	let total = 100000
+	let size = 20
+	let index = 0
+	const render = (total, index) => {
+		if (total <= 0) {
+			return
+		}
+		let curPage = Math.min(total, size)
+		window.requestAnimationFrame(() => {
+			let fragment = document.createDocumentFragment()
+			for (let i = 0; i < curPage; ++i) {
+				let item = document.createElement('li')
+				item.innerText = `我是${index + i}`
+				fragment.appendChild(item)
+			}
+			list.appendChild(fragment)
+			render(total - curPage, index + curPage)
+		})
+	}
+	render(total, index)
+</script>
+```
+
+没有做太多的测评，但是从用户视觉上的感受来看就是，第一种方案，我就是想刷新都要打好几个转，往下滑的时候也有白屏的现象。
+
+除了上述的生成 DOM 的方案，我们同样可以利用 Web Api requestIdleCallback 以及 ES6 API Generator]来实现。
+
+同样不会做太多的介绍，详细规则可以看 MDN requestIdleCallback 以及 MDN Generator。
+
+具体实现如下：
+
+```html
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+	}
+	.list {
+		width: 60vw;
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+</style>
+<ul class="list"></ul>
+<script>
+	'use strict'
+	function gen(task) {
+		requestIdleCallback((deadline) => {
+			let next = task.next()
+			while (!next.done) {
+				if (deadline.timeRemaining() <= 0) {
+					gen(task)
+					return
+				}
+				next = task.next()
+			}
+		})
+	}
+	let list = document.querySelector('.list')
+	let total = 100000
+	function* loop() {
+		for (let i = 0; i < total; ++i) {
+			let item = document.createElement('li')
+			item.innerText = `我是${i}`
+			list.appendChild(item)
+			yield
+		}
+	}
+	gen(loop())
+</script>
+```
+
+## 浏览器刷新率
+
+页面的内容都是一帧一帧绘制出来的，浏览器刷新率代表浏览器一秒绘制多少帧。目前浏览器大多是 60Hz（60 帧/s），每一帧耗时也就是在 16ms 左右。原则上说 1s 内绘制的帧数也多，画面表现就也细腻。那么在这一帧的（16ms） 过程中浏览器又干了啥呢？
+
+![fresh](/fresh.webp.jpg)
+
+通过上面这张图可以清楚的知道，浏览器一帧会经过下面这几个过程：
+
+1. 接受输入事件
+1. 执行事件回调
+1. 开始一帧
+1. 执行 RAF (RequestAnimationFrame)
+1. 页面布局，样式计算
+1. 渲染
+1. 执行 RIC (RequestIdelCallback)
+
+第七步的 RIC 事件不是每一帧结束都会执行，只有在一帧的 16ms 中做完了前面 6 件事儿且还有剩余时间，才会执行。这里提一下，如果一帧执行结束后还有时间执行 RIC 事件，那么下一帧需要在事件执行结束才能继续渲染，所以 RIC 执行不要超过 30ms，如果长时间不将控制权交还给浏览器，会影响下一帧的渲染，导致页面出现卡顿和事件响应不及时。
+
 ## 网络安全
 
 ### 同源策略

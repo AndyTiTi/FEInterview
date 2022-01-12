@@ -36,6 +36,7 @@ git fetch origin master
 ### reset 介绍
 
 [如果你还不会用 git 回滚代码，那你一定要来看看](https://juejin.cn/post/7046720828901163016)
+[GIT 原理详解及实用指南 - 掘金小册](https://www.freesion.com/article/90361122641/)
 
 1. reset 的作用是当你希望提交的 commit 从历史记录中完全消失就可以用
 2. 比如你在 master 分支提交了 A-->B-->C 提交了三个记录，这个时候如果 C 记录有问题你想回滚到 B 就可以用 git reset 进行

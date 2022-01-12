@@ -109,6 +109,7 @@ module.exports = {
 		searchMaxSuggestions: 10,
 	},
 	plugins: [
+		'@vuepress/medium-zoom',
 		[
 			'vuepress-plugin-code-copy',
 			{
