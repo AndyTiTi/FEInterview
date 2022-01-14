@@ -2,6 +2,9 @@
 title: 备忘录
 ---
 
+![](/profile1.png)
+![](/profile2.png)
+![](/profile3.png)
 1. JSONP 只限制 get 请求
 
 2. CSS 选择符从右往左匹配查找，避免节点层级过多；对于没有任何依赖的 JS 文件可以加上 async 属性，表示 JS 文件下载和解析不会阻塞渲染；当 script 标签加上 defer 属性以后，表示该 JS 文件会并行下载，但是会放到 HTML 解析完成后顺序执行，所以对于这种情况你可以把 script 标签放在任意位置。

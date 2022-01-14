@@ -4,7 +4,7 @@ title: 第一章
 
 @[TOC](这里写目录标题)
 
-# 修改 yum 源
+## 修改 yum 源
 
 **163yum 源：**
 1）备份当前 yum 源防止出现意外还可以还原回来
@@ -72,7 +72,7 @@ yum makecache
 yum update
 ```
 
-# 全盘搜索
+## 全盘搜索
 
 pwd 获取当前目录
 / 根目录
@@ -817,7 +817,7 @@ sudo docker update <CONTAINER ID> --restart=always
 sudo docker update <CONTAINER ID> --restart=no
 ```
 
-# docker pull mysql:5.7
+## docker pull mysql:5.7
 
 ```java
 docker run -p 3306:3306 --name mysql \
@@ -871,7 +871,7 @@ skip-name-resolve
 $ docker restart mysql
 ```
 
-# docker 安装 redis
+## docker 安装 redis
 
 ```
 mkdir -p /mydata/redis/conf
@@ -890,7 +890,7 @@ $ docker exec -it redis redis-cli
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20201226113750444.png)
 
-# docker 安装 ElasticSearch
+## docker 安装 ElasticSearch
 
 ```
 $ mkdir -p /mydata/elasticsearch/config
@@ -1001,7 +1001,7 @@ GET ip/\_cat/health 查看 es 健康状况
 GET ip/\_cat/master 查看主节点
 GET ip/\_cat/indices 查看所有索引
 
-# CentOS8 安装 nginx
+## CentOS8 安装 nginx
 
 Centos 8 下安装 nginx，使用 yum install nginx，提示没有可用的软件包。
 `报错提示no match nginx` 原因是 nginx 位于第三方的 yum 源里面，而不在 centos 官方 yum 源里面
@@ -1061,7 +1061,7 @@ firewall-cmd --reload
 
 出现这种情况一般是 80 端口被占用，使用 sudo fuser -k 80/tcp 命令关闭 80 端口即可
 
-# docker 安装 Nginx
+## docker 安装 Nginx
 
 $ mkdir /mydata/nginx
 $ docker run -p 8888:80 --name nginx -d nginx:latest
@@ -1221,7 +1221,7 @@ listen rabbitmq_admin #监听8000端口转发到rabbitmq的客户端
 	server slave132 192.168.116.132:15674 check inter 5000 rise 2 fall 2
 ```
 
-# 目标：从服务器 A 免密登录服务器 B
+## 目标：从服务器 A 免密登录服务器 B
 
 【配置方法】
 
@@ -1274,3 +1274,9 @@ listen rabbitmq_admin #监听8000端口转发到rabbitmq的客户端
    chmod 700 ~/.ssh/
    // ~/.ssh/authorized_keys 文件权限
    chmod 600 ~/.ssh/authorized_keys
+
+## bin/bash 报错，无法进入子容器
+
+`OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "/bin/bash": stat /bin/bash: no such file or directory: unknown`
+解决方法：
+`docker exec -it a98f3b sh`

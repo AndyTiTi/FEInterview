@@ -30,216 +30,6 @@ function App() {
 }
 ```
 
-## FiberNode 有哪些属性
-
-tag、key、elementType、stateNode、updateQueue
-
-## jsx 和 Fiber 有什么关系
-
-mount 时通过 jsx 对象（调用 createElement 的结果）调用 createFiberFromElement 生成 Fiber
-
-update 时通过 reconcileChildFibers 或 reconcileChildrenArray 对比新 jsx 和老的 Fiber（current Fiber）生成新的 wip Fiber 树
-
-## Fiber 架构
-
-Fiber 是一个 js 对象，能承载节点信息、优先级、updateQueue，同时它还是一个工作单元。
-
--   Fiber 双缓存可以在构建好 wip Fiber 树之后切换成 current Fiber，内存中直接一次性切换，提高了性能
-
--   Fiber 的存在使异步可中断的更新成为了可能，作为工作单元，可以在时间片内执行工作，没时间了交还执行权给浏览器，下次时间片继续执行之前暂停之后返回的 Fiber
-
--   Fiber 可以在 reconcile 的时候进行相应的 diff 更新，让最后的更新应用在真实节点上
-
-### Fiber 你需要知道的基础知识
-
-1. <a href="./browser.html#浏览器刷新率" target="_blank">浏览器刷新率</a>
-1. <a href="./browser.html#什么是时间分片-time-slicing" target="_blank">时间分片（Time Slicing）</a>
-
-Fiber 架构的应用目的，按照 React 官方的说法，是实现“增量渲染”。所谓“增量渲染”，通俗来说就是把一个渲染任务分解为多个渲染任务，而后将其分散到多个帧里面。不过严格来说，增量渲染其实也只是一种手段，实现增量渲染的目的，是为了实现任务的可中断、可恢复，并给不同的任务赋予不同的优先级，最终达成更加顺滑的用户体验。
-
-### Fiber 是如何实现更新过程可控？
-
-Fiber 架构中的“可中断”“可恢复”到底是如何实现的？
-
-更新过程的可控主要体现在下面几个方面：
-
-1. 任务拆分
-1. 任务挂起、恢复、终止
-1. 任务具备优先级
-
--   1. 任务拆分
-
-前面提到，React Fiber 之前是基于原生执行栈，每一次更新操作会一直占用主线程，直到更新完成。这可能会导致事件响应延迟，动画卡顿等现象。
-
-在 React Fiber 机制中，它采用"化整为零"的战术，将调和阶段（Reconciler）递归遍历 VDOM 这个大任务分成若干小任务，每个任务只负责一个节点的处理。例如：
-
-```js
-import React from 'react'
-import ReactDom from 'react-dom'
-const jsx = (
-	<div id="A1">
-		A1
-		<div id="B1">
-			B1
-			<div id="C1">C1</div>
-			<div id="C2">C2</div>
-		</div>
-		<div id="B2">B2</div>
-	</div>
-)
-ReactDom.render(jsx, document.getElementById('root'))
-```
-
-这个组件在渲染的时候会被分成八个小任务，每个任务用来分别处理 A1(div)、A1(text)、B1(div)、B1(text)、C1(div)、C1(text)、C2(div)、C2(text)、B2(div)、B2(text)。
-
-再通过时间分片，在一个时间片中执行一个或者多个任务。这里提一下，所有的小任务并不是一次性被切分完成，而是处理当前任务的时候生成下一个任务，如果没有下一个任务生成了，就代表本次渲染的 Diff 操作完成。
-
--   2. 挂起、恢复、终止
-
-再说挂起、恢复、终止之前，不得不提两棵 Fiber 树，`workInProgress tree` 和 `currentFiber tree`。
-
-workInProgress 代表当前正在执行更新的 Fiber 树。在 render 或者 setState 后，会构建一颗 Fiber 树，也就是 `workInProgress tree`，这棵树在构建每一个节点的时候会收集当前节点的副作用，整棵树构建完成后，会形成一条完整的副作用链。
-
-currentFiber 表示上次渲染构建的 Filber 树。在每一次更新完成后 workInProgress 会赋值给 currentFiber。在新一轮更新时 `workInProgress tree` 再重新构建，新 workInProgress 的节点通过 alternate 属性和 currentFiber 的节点建立联系。
-
-在新 `workInProgress tree` 的创建过程中，会同 currentFiber 的对应节点进行 Diff 比较，收集副作用。同时也会复用和 currentFiber 对应的节点对象，减少新创建对象带来的开销。也就是说无论是创建还是更新，挂起、恢复以及终止操作都是发生在 `workInProgress tree` 创建过程中。
-
-`workInProgress tree` 构建过程其实就是循环的执行任务和创建下一个任务，大致过程如下：
-
-![fiber-tree](/fiber-tree.webp.jpg)
-
-当没有下一个任务需要执行的时候，workInProgress tree 构建完成，开始进入提交阶段，完成真实 DOM 更新。
-
-在构建 workInProgressFiber tree 过程中可以通过挂起、恢复和终止任务，实现对更新过程的管控。下面简化了一下源码，大致实现如下：
-
-```js
-let nextUnitWork = null;//下一个执行单元
-//开始调度
-function shceduler(task){
-     nextUnitWork = task;
-}
-//循环执行工作
-function workLoop(deadline){
-  let shouldYield = false;//是否要让出时间片交出控制权
-  while(nextUnitWork && !shouldYield){
-    nextUnitWork = performUnitWork(nextUnitWork)
-    shouldYield = deadline.timeRemaining()<1 // 没有时间了，检出控制权给浏览器
-  }
-  if(!nextUnitWork) {
-    conosle.log("所有任务完成")
-    //commitRoot() //提交更新视图
-  }
-  // 如果还有任务，但是交出控制权后,请求下次调度
-  requestIdleCallback(workLoop,{timeout:5000})
-}
-/*
- * 处理一个小任务，其实就是一个 Fiber 节点，如果还有任务就返回下一个需要处理的任务，没有就代表整个
- */
-function performUnitWork(currentFiber){
-  ....
-  return FiberNode
-}
-```
-
-**挂起**
-
-当第一个小任务完成后，先判断这一帧是否还有空闲时间，没有就挂起下一个任务的执行，记住当前挂起的节点，让出控制权给浏览器执行更高优先级的任务。
-
-**恢复**
-
-在浏览器渲染完一帧后，判断当前帧是否有剩余时间，如果有就恢复执行之前挂起的任务。如果没有任务需要处理，代表调和阶段完成，可以开始进入渲染阶段。这样完美的解决了调和过程一直占用主线程的问题。
-
-那么问题来了他是如何判断一帧是否有空闲时间的呢？答案就是我们前面提到的 RIC (RequestIdleCallback) 浏览器原生 API，React 源码中为了兼容低版本的浏览器，对该方法进行了 Polyfill。
-
-当恢复执行的时候又是如何知道下一个任务是什么呢？答案在前面提到的链表。在 React Fiber 中每个任务其实就是在处理一个 FiberNode 对象，然后又生成下一个任务需要处理的 FiberNode。顺便提一嘴，这里提到的 FiberNode 是一种数据格式：
-
-```js
-class FiberNode {
-	constructor(tag, pendingProps, key, mode) {
-		// 实例属性
-		this.tag = tag // 标记不同组件类型，如函数组件、类组件、文本、原生组件...
-		this.key = key // react 元素上的 key 就是 jsx 上写的那个 key ，也就是最终 ReactElement 上的
-		this.elementType = null // createElement的第一个参数，ReactElement 上的 type
-		this.type = null // 表示fiber的真实类型 ，elementType 基本一样，在使用了懒加载之类的功能时可能会不一样
-		this.stateNode = null // 实例对象，比如 class 组件 new 完后就挂载在这个属性上面，如果是RootFiber，那么它上面挂的是 FiberRoot,如果是原生节点就是 dom 对象
-		// fiber
-		this.return = null // 父节点，指向上一个 fiber
-		this.child = null // 子节点，指向自身下面的第一个 fiber
-		this.sibling = null // 兄弟组件, 指向一个兄弟节点
-		this.index = 0 //  一般如果没有兄弟节点的话是0 当某个父节点下的子节点是数组类型的时候会给每个子节点一个 index，index 和 key 要一起做 diff
-		this.ref = null // reactElement 上的 ref 属性
-		this.pendingProps = pendingProps // 新的 props
-		this.memoizedProps = null // 旧的 props
-		this.updateQueue = null // fiber 上的更新队列执行一次 setState 就会往这个属性上挂一个新的更新, 每条更新最终会形成一个链表结构，最后做批量更新
-		this.memoizedState = null // 对应  memoizedProps，上次渲染的 state，相当于当前的 state，理解成 prev 和 next 的关系
-		this.mode = mode // 表示当前组件下的子组件的渲染方式
-		// effects
-		this.effectTag = NoEffect // 表示当前 fiber 要进行何种更新
-		this.nextEffect = null // 指向下个需要更新的fiber
-		this.firstEffect = null // 指向所有子节点里，需要更新的 fiber 里的第一个
-		this.lastEffect = null // 指向所有子节点中需要更新的 fiber 的最后一个
-		this.expirationTime = NoWork // 过期时间，代表任务在未来的哪个时间点应该被完成
-		this.childExpirationTime = NoWork // child 过期时间
-		this.alternate = null // current 树和 workInprogress 树之间的相互引用
-	}
-}
-```
-
-在每次循环的时候，找到下一个执行需要处理的节点
-
-```js
-function performUnitWork(currentFiber) {
-	//beginWork(currentFiber) //找到儿子，并通过链表的方式挂到currentFiber上，每一偶儿子就找后面那个兄弟
-	//有儿子就返回儿子
-	if (currentFiber.child) {
-		return currentFiber.child
-	}
-	//如果没有儿子，则找弟弟
-	while (currentFiber) {
-		//一直往上找
-		//completeUnitWork(currentFiber);//将自己的副作用挂到父节点去
-		if (currentFiber.sibling) {
-			return currentFiber.sibling
-		}
-		currentFiber = currentFiber.return
-	}
-}
-```
-
-在一次任务结束后返回该处理节点的子节点或兄弟节点或父节点。只要有节点返回，说明还有下一个任务，下一个任务的处理对象就是返回的节点。通过一个全局变量记住当前任务节点，当浏览器再次空闲的时候，通过这个全局变量，找到它的下一个任务需要处理的节点恢复执行。就这样一直循环下去，直到没有需要处理的节点返回，代表所有任务执行完成。最后大家手拉手，就形成了一颗 Fiber 树。
-
-![fiber-root.webp](/fiber-root.webp.jpg)
-
-**终止**
-
-其实并不是每次更新都会走到提交阶段。当在调和过程中触发了新的更新，在执行下一个任务的时候，判断是否有优先级更高的执行任务，如果有就终止原来将要执行的任务，开始新的 workInProgressFiber 树构建过程，开始新的更新流程。这样可以避免重复更新操作。这也是在 React 16 以后生命周期函数 componentWillMount 有可能会执行多次的原因。
-
--   3. 任务具备优先级(优先级调度是如何实现的？)
-       React Fiber 除了通过挂起，恢复和终止来控制更新外，还给每个任务分配了优先级。具体点就是在创建或者更新 FiberNode 的时候，通过算法给每个任务分配一个到期时间（expirationTime）。在每个任务执行的时候除了判断剩余时间，如果当前处理节点已经过期，那么无论现在是否有空闲时间都必须执行该任务。
-
-同时过期时间的大小还代表着任务的优先级。
-
-任务在执行过程中顺便收集了每个 FiberNode 的副作用，将有副作用的节点通过 firstEffect、lastEffect、nextEffect 形成一条副作用单链表 AI(TEXT)-B1(TEXT)-C1(TEXT)-C1-C2(TEXT)-C2-B1-B2(TEXT)-B2-A。
-
-![fiber-root.webp](/fiber-effect.webp.jpg)
-
-其实最终都是为了收集到这条副作用链表，有了它，在接下来的渲染阶段就通过遍历副作用链完成 DOM 更新。这里需要注意，更新真实 DOM 的这个动作是一气呵成的，不能中断，不然会造成视觉上的不连贯。
-
-**关于 React Fiber 的思考**
-
-1. 能否使用生成器（generater）替代链表
-   在 Fiber 机制中，最重要的一点就是需要实现挂起和恢复，从实现角度来说 generator 也可以实现。那么为什么官方没有使用 generator 呢？猜测应该是是性能方面的原因。生成器不仅让您在堆栈的中间让步，还必须把每个函数包装在一个生成器中。一方面增加了许多语法方面的开销，另外还增加了任何现有实现的运行时开销。性能上远没有链表的方式好，而且链表不需要考虑浏览器兼容性。
-
-2. Vue 是否会采用 Fiber 机制来优化复杂页面的更新
-   这个问题其实有点搞事情，如果 Vue 真这么做了是不是就是变相承认 Vue 是在"集成" Angular 和 React 的优点呢？React 有 Fiber，Vue 就一定要有？
-
-两者虽然都依赖 DOM Diff，但是实现上却有区别，DOM Diff 的目的都是收集副作用。Vue 通过 Watcher 实现了依赖收集，本身就是一种很好的优化。所以 Vue 没有采用 Fiber 机制，也无伤大雅。
-
-总结
-React Fiber 的出现相当于是在更新过程中引进了一个中场指挥官，负责掌控更新过程，足球世界里管这叫前腰。抛开带来的性能和效率提升外，这种“化整为零”和任务编排的思想，可以应用到我们平时的架构设计中。
-
-### Fiber 树和传统虚拟 DOM 树有何不同？
-
 ## react 里有动态加载的 api 吗？
 
 React.lazy
@@ -294,6 +84,16 @@ ReactDOM.render(<Header favcol="taobao" />, document.getElementById('root'))
 
 ## React 性能优化
 
+:::tip React 性能优化的理念的主要方向就是这两个
+
+1. 减少重新 render 的次数。因为在 React 里最重(花时间最长)的一块就是 reconction(简单的可以理解为 diff)，如果不 render，就不会 reconction。
+2. 减少计算的量。主要是减少重复计算，对于函数式组件来说，每次 render 都会重新从头开始执行函数调用。
+   :::
+
+-   类组件:
+    使用的 React 优化 API 主要是：shouldComponentUpdate 和 PureComponent，这两个 API 所提供的解决思路都是为了减少重新 render 的次数，主要是减少父组件更新而子组件也更新的情况
+-   函数式组件：React.memo 这个效果基本跟类组件里面的 PureComponent 效果极其类似
+
 -   渲染列表时加 key
 -   自定义事件、DOM 事件及时销毁
 -   合理使用一部组件
@@ -304,11 +104,212 @@ ReactDOM.render(<Header favcol="taobao" />, document.getElementById('root'))
 -   前端通用的性能优化，如图片懒加载
 -   使用 SSR
 
-## 为什么用 key
+### 为什么用 key
 
 -   必须用 key，且不能是 index 或 random
 -   diff 算法中通过 tag 和 key 来判断，是否是 sameNode
 -   减少渲染次数，提升渲染性能
+
+### React.memo 高级用法
+
+> 默认情况下其只会对 props 的复杂对象做浅层对比(浅层对比就是只会对比前后两次 props 对象引用是否相同，不会对比对象里面的内容是否相同)，如果你想要控制对比过程，那么请将自定义的比较函数通过第二个参数传入来实现
+
+```javascript
+function MyComponent(props) {
+  /* 使用 props 渲染 */
+}
+function areEqual(prevProps, nextProps) {
+  /*
+  如果把 nextProps 传入 render 方法的返回结果与
+  将 prevProps 传入 render 方法的返回结果一致则返回 true，
+  否则返回 false
+  */
+}
+exportdefault React.memo(MyComponent, areEqual);
+```
+
+如果你有在类组件里面使用过 `shouldComponentUpdate()`这个方法，你会对 React.memo 的第二个参数非常的熟悉，不过值得注意的是，如果 props 相等，areEqual 会返回 true；如果 props 不相等，则返回 false。这与 shouldComponentUpdate 方法的返回值相反
+
+### useCallback
+
+```javascript
+// 使用
+const callback = () => {
+	doSomething(a, b)
+}
+
+const memoizedCallback = useCallback(callback, [a, b])
+```
+
+```javascript
+// 父组件 index.js
+import React, { useState } from 'react'
+import ReactDOM from 'react-dom'
+import Child from './child'
+
+function App() {
+	const [title, setTitle] = useState('这是一个 title')
+	const [subtitle, setSubtitle] = useState('我是一个副标题')
+
+	const callback = () => {
+		setTitle('标题改变了')
+	}
+	return (
+		<div className="App">
+			<h1>{title}</h1>
+			<h2>{subtitle}</h2>
+			<button onClick={() => setSubtitle('副标题改变了')}>
+				改副标题
+			</button>
+			<Child onClick={callback} name="桃桃" />
+		</div>
+	)
+}
+
+const rootElement = document.getElementById('root')
+ReactDOM.render(<App />, rootElement)
+
+// 子组件 child.js
+import React from 'react'
+
+function Child(props) {
+	console.log(props)
+	return (
+		<>
+			<button onClick={props.onClick}>改标题</button>
+			<h1>{props.name}</h1>
+		</>
+	)
+}
+
+export default React.memo(Child)
+```
+
+```javascript
+// index.js
+import React, { useState, useCallback } from 'react'
+import ReactDOM from 'react-dom'
+import Child from './child'
+
+function App() {
+	const [title, setTitle] = useState('这是一个 title')
+	const [subtitle, setSubtitle] = useState('我是一个副标题')
+
+	const callback = () => {
+		setTitle('标题改变了')
+	}
+
+	// 通过 useCallback 进行记忆 callback，并将记忆的 callback 传递给 Child
+	const memoizedCallback = useCallback(callback, [])
+
+	return (
+		<div className="App">
+			<h1>{title}</h1>
+			<h2>{subtitle}</h2>
+			<button onClick={() => setSubtitle('副标题改变了')}>
+				改副标题
+			</button>
+			<Child onClick={memoizedCallback} name="桃桃" />
+		</div>
+	)
+}
+
+const rootElement = document.getElementById('root')
+ReactDOM.render(<App />, rootElement)
+```
+
+> 问题：当父组件重新渲染的时候，传递给子组件的 props 发生了改变，再看传递给 Child 组件的就两个属性，一个是 name，一个是 onClick ，name 是传递的常量，不会变，变的就是 onClick 了，为什么传递给 onClick 的 callback 函数会发生改变呢？在文章的开头就已经说过了，在函数式组件里每次重新渲染，函数组件都会重头开始重新执行，那么这两次创建的 callback 函数肯定发生了改变，所以导致了子组件重新渲染。
+
+> 解决：在函数没有改变的时候，重新渲染的时候保持两个函数的引用一致，这个时候就要用到 useCallback 这个 API 了
+
+### useMemo
+
+在文章的开头就已经介绍了，React 的性能优化方向主要是两个：一个是减少重新 render 的次数(或者说减少不必要的渲染)，另一个是减少计算的量。
+
+前面介绍的 React.memo 和 useCallback 都是为了减少重新 render 的次数。对于如何减少计算的量，就是 useMemo 来做的，接下来我们看例子。
+
+```javascript
+function App() {
+	const [num, setNum] = useState(0)
+
+	// 一个非常耗时的一个计算函数
+	// result 最后返回的值是 49995000
+	function expensiveFn() {
+		let result = 0
+
+		for (let i = 0; i < 10000; i++) {
+			result += i
+		}
+
+		console.log(result) // 49995000
+		return result
+	}
+
+	const base = expensiveFn()
+
+	return (
+		<div className="App">
+			<h1>count：{num}</h1>
+			<button onClick={() => setNum(num + base)}>+1</button>
+		</div>
+	)
+}
+```
+
+### 可能产生性能问题
+
+就算是一个看起来很简单的组件，也有可能产生性能问题，通过这个最简单的例子来看看还有什么值得优化的地方。
+
+首先我们把 expensiveFn 函数当做一个计算量很大的函数(比如你可以把 i 换成 10000000)，然后当我们每次点击 +1 按钮的时候，都会重新渲染组件，而且都会调用 expensiveFn 函数并输出 49995000。由于每次调用 expensiveFn 所返回的值都一样，所以我们可以想办法将计算出来的值缓存起来，每次调用函数直接返回缓存的值，这样就可以做一些性能优化。
+
+### useMemo 做计算结果缓存
+
+针对上面产生的问题，就可以用 useMemo 来缓存 expensiveFn 函数执行后的值。
+
+首先介绍一下 useMemo 的基本的使用方法，详细的使用方法可见官网[3]：
+
+```javascript
+function computeExpensiveValue() {
+	// 计算量很大的代码
+	return xxx
+}
+
+const memoizedValue = useMemo(computeExpensiveValue, [a, b])
+```
+
+useMemo 的第一个参数就是一个函数，这个函数返回的值会被缓存起来，同时这个值会作为 useMemo 的返回值，第二个参数是一个数组依赖，如果数组里面的值有变化，那么就会重新去执行第一个参数里面的函数，并将函数返回的值缓存起来并作为 useMemo 的返回值 。
+
+了解了 useMemo 的使用方法，然后就可以对上面的例子进行优化，优化代码如下：
+
+```JavaScript
+function App() {
+  const [num, setNum] = useState(0);
+
+  function expensiveFn() {
+    let result = 0;
+    for (let i = 0; i < 10000; i++) {
+      result += i;
+    }
+    console.log(result)
+    return result;
+  }
+
+  const base = useMemo(expensiveFn, []);
+
+  return (
+    <div className="App">
+      <h1>count：{num}</h1>
+      <button onClick={() => setNum(num + base)}>+1</button>
+    </div>
+  );
+}
+```
+
+执行上面的代码，然后现在可以观察无论我们点击 +1 多少次，只会输出一次 49995000，这就代表 expensiveFn 只执行了一次，达到了我们想要的效果。
+
+### 小结
+
+useMemo 的使用场景主要是用来缓存计算量比较大的函数结果，可以避免不必要的重复计算，有过 vue 的使用经历同学可能会觉得跟 Vue 里面的计算属性有异曲同工的作用。
 
 ## React 生命周期
 
@@ -1166,3 +1167,136 @@ diff 算法对比新旧 VNode，如果新旧 VNode 不一样就调用 render 重
 ## diff 算法流程
 
 ## React 16 在所有情况下都是异步渲染的吗？
+
+## React 类组件 this 绑定问题
+
+:::tip
+[真正的原因在 JavaScript 不在 React](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Classes#用原型和静态方法绑定_this)
+
+当调用静态或原型方法时没有指定 this 的值，那么方法内的 this 值将被置为 undefined。即使你未设置 "use strict" ，因为 class 体内部的代码总是在严格模式下执行。
+:::
+
+```js
+class Animal {
+	speak() {
+		return this
+	}
+	static eat() {
+		return this
+	}
+}
+
+let obj = new Animal()
+obj.speak() // Animal {}
+let speak = obj.speak
+speak() // undefined
+
+Animal.eat() // class Animal
+let eat = Animal.eat
+eat() // undefined
+```
+
+如果上述代码通过传统的基于函数的语法来实现，那么依据初始的 this 值，在非严格模式下方法调用会发生自动装箱。若初始值是 undefined，this 值会被设为全局对象。
+
+严格模式下不会发生自动装箱，this 值将保留传入状态。
+
+```js
+function Animal() {}
+
+Animal.prototype.speak = function () {
+	return this
+}
+
+Animal.eat = function () {
+	return this
+}
+
+let obj = new Animal()
+let speak = obj.speak
+speak() // global object
+
+let eat = Animal.eat
+eat() // global object
+```
+
+> 在 constructor 中绑定是最佳和最高效的地方，因为我们在初始化 class 时已经将函数绑定，让 this 指向正确的上下文。
+
+```js
+class Foo {
+	constructor(name) {
+		this.name = name
+		this.display = this.display.bind(this)
+	}
+	display() {
+		console.log(this.name)
+	}
+}
+var foo = new Foo('coco')
+foo.display() // coco
+var display = foo.display
+display() // coco
+```
+
+**不用 bind 绑定方式**
+当然，实际写 React Component 还有其他的一些方式来使 this 指向这个 class :
+
+最常用的 public class fields
+
+```js
+class Foo extends React.Component {
+	handleClick = () => {
+		console.log(this)
+	}
+
+	render() {
+		return (
+			<button type="button" onClick={this.handleClick}>
+				Click Me
+			</button>
+		)
+	}
+}
+```
+
+这是因为我们使用 public class fields 语法，handleClick 箭头函数会自动将 this 绑定在 Foo 这个 class, 具体就不做探究。
+
+**箭头函数**
+
+```js
+class Foo extends React.Component {
+	handleClick(event) {
+		console.log(this)
+	}
+
+	render() {
+		return (
+			<button type="button" onClick={(e) => this.handleClick(e)}>
+				Click Me
+			</button>
+		)
+	}
+}
+```
+
+这是因为在 ES6 中，箭头函数 this 默认指向函数的宿主对象(或者函数所绑定的对象)。
+
+## 服务端渲染SSR
+### React16中render和hydrate的区别
+#### render()
+
+render话不多说就是渲染的意思，官方解释：
+
+- 在提供的 container 里渲染一个 React 元素，并返回对该组件的引用（或者针对无状态组件返回 null）。
+- 如果 React 元素之前已经在 container 里渲染过，这将会对其执行更新操作，并仅会在必要时改变 DOM 以映射最新的 React 元素
+- 如果提供了可选的回调函数，该回调将在组件被渲染或更新之后被执行。
+
+hydrate()
+与 render() 相同，但它用于在 ReactDOMServer 渲染的容器中对 HTML 的内容进行 hydrate 操作。
+
+hydrate基本上用于SSR（服务器端渲染）。 SSR为您提供了从服务器附带的框架或HTML标记，因此，第一次在页面加载时不为空白，搜索引擎机器人可以将其索引为SEO（SSR的一个用例）。 因此，hydrate会将JS添加到您的页面或要应用SSR的节点。 这样您的页面才能响应用户执行的事件。
+
+渲染用于在客户端浏览器Plus上渲染组件，如果尝试将hydrate替换为render，则会收到警告，提示render已弃用，在SSR情况下无法使用。 由于它比水合物慢，因此将其除去。
+
+#### 为什么在服务端渲染的时候不采用render？
+在react15中，当服务端和客户端渲染不一致时，render会做dom patch，使得最后的渲染内容和客户端一致，否则这会使得客户端代码陷入混乱之中，如下的代码就会挂掉。
+
