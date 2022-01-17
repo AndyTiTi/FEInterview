@@ -699,3 +699,19 @@ urls.forEach((url) => {
 	queue.add(() => loadImg(url))
 })
 ```
+
+## 斐波那契数列 - 利用惰性单例缓存对象进行优化
+
+```js
+//惰性单例
+let fibonacci = (function () {
+	let memory = {} //memory设定为对象
+	return function (n) {
+		if (memory[n] !== undefined) {
+			return memory[n]
+		}
+		return (memory[n] =
+			n === 0 || n === 1 ? n : fibonacci(n - 1) + fibonacci(n - 2))
+	}
+})()
+```

@@ -21,13 +21,13 @@ module.exports = {
 		displayAllHeaders: true,
 		nav: [
 			{ text: 'Home', link: '/' },
-			{ text: 'Introduce', link: '/other/' },
+			{ text: 'NodeJS', link: '/node/installUse' },
 			{ text: '前端知识体系', link: '/interview/vue1' },
 		],
 		sidebarDepth: 3,
 		// sidebar,
 		sidebar: {
-			'/other/': ['', '/other/installUse', '/other/webpack'],
+			'/node/': ['/node/installUse', '/node/frame'],
 			'/interview/': [
 				{
 					title: 'Vue篇',
@@ -39,7 +39,7 @@ module.exports = {
 				},
 				{
 					title: 'JavaScript篇',
-					children: ['javascript1', 'javascript2'],
+					children: ['javascript1', 'javascript2', 'javascript3'],
 				},
 				{
 					title: 'TypeScript篇',
@@ -102,8 +102,8 @@ module.exports = {
 			],
 		},
 		lastUpdated: '最后更新时间',
-		logo: '/head.png',
-		authorAvatar: '/head.png',
+		logo: '/head.jpg',
+		authorAvatar: '/head.jpg',
 		// 搜索设置
 		search: true,
 		searchMaxSuggestions: 10,

@@ -4,15 +4,26 @@ title: 第二章
 
 ## Redux
 
-Redux 通过提供一个统一的状态容器，使得数据能够自由而有序地在任意组件之间穿梭，这就是 Redux 实现组件间通信的思路。
+Redux 通过提供一个统一的状态容器，使得数据能够自由而有序地在任意组件之间穿梭，这就是 Redux 实现组件间通信的思路.
 
-## 实现一个 redux？
+- store：推送数据的仓库
+- reducer：帮助 store 处理数据的方法（初始化、修改、删除）
+- actions：数据更新的指令
+- react 组件（UI）：订阅 store 中的数据
 
-实现 createStore 的功能，关键点发布订阅的功能，以及取消订阅的功能。
+![redux](/redux.gif)
 
-## 用 ts 实现一个 redux？
+## 实现一个 redux?
 
-## React.lazy 的原理是啥？
+实现 createStore 的功能，关键点发布订阅的功能，以及取消订阅的功能.
+
+## 用 ts 实现一个 redux?
+
+## React.lazy 的原理是啥?
+
+## react 里有动态加载的 api 吗?
+
+React.lazy
 
 ## react17 为什么不用 import React
 
@@ -30,16 +41,12 @@ function App() {
 }
 ```
 
-## react 里有动态加载的 api 吗？
-
-React.lazy
-
 ## 为什么需要 React-Hooks
 
 -   告别难以理解的 Class；
 -   解决业务逻辑难以拆分的问题；
 -   使状态逻辑复用变得简单可行；
--   函数组件从设计思想上来看，更加契合 React 的理念。
+-   函数组件从设计思想上来看，更加契合 React 的理念.
 
 ## 为什么 hooks 不能写在条件判断中
 
@@ -47,13 +54,9 @@ hook 会按顺序存储在链表中，如果写在条件判断中，就没法保
 
 ## 说一下 getDerivedStateFromProps
 
-getDerivedStateFromProps 会在调用 render 方法之前调用，即在渲染 DOM 元素之前会调用，并且在初始挂载及后续更新时都会被调用。
+getDerivedStateFromProps 会在调用 render 方法之前调用，即在渲染 DOM 元素之前会调用，并且在初始挂载及后续更新时都会被调用. 该方法返回一个对象用于更新 state，如果返回 null 则不更新任何内容.
 
-state 的值在任何时候都取决于 props。
-
-getDerivedStateFromProps 的存在只有一个目的：让组件在 props 变化时更新 state。
-
-该方法返回一个对象用于更新 state，如果返回 null 则不更新任何内容。
+getDerivedStateFromProps 的存在只有一个目的：让组件在 props 变化时更新 state. state 的值在任何时候都取决于 props.
 
 ```js
 class Header extends React.Component {
@@ -84,25 +87,55 @@ ReactDOM.render(<Header favcol="taobao" />, document.getElementById('root'))
 
 ## React 性能优化
 
-:::tip React 性能优化的理念的主要方向就是这两个
+### React 性能优化的主要方向
 
-1. 减少重新 render 的次数。因为在 React 里最重(花时间最长)的一块就是 reconction(简单的可以理解为 diff)，如果不 render，就不会 reconction。
-2. 减少计算的量。主要是减少重复计算，对于函数式组件来说，每次 render 都会重新从头开始执行函数调用。
-   :::
-
--   类组件:
+1.  减少重新 render 的次数.因为在 React 里最重(花时间最长)的一块就是 reconction(简单的可以理解为 diff)，如果不 render，就不会 reconction.
+1.  减少计算的量.主要是减少重复计算，对于函数式组件来说，每次 render 都会重新从头开始执行函数调用.
+1.  使用 React Fragments 避免额外标记
+    使用 Fragments 减少了包含的额外标记数量，这些标记只是为了满足在 React 组件中具有公共父级的要求。`<> <div></div> <div></div> </>`
+1.  避免 componentWillMount()中的异步请求
+    由于 API 调用是异步的，因此组件在调用 render 函数之前不会等待 API 返回数据。于是在初始渲染中渲染组件时没有任何数据。
+    这样一开始渲染组件没有数据，然后检索数据，调用 setState，还得重新渲染组件。在 componentWillMount 阶段进行 AJAX 调用没有好处可言。
+    **注意：**React 16.3 不推荐使用 componentWillMount。如果你使用的是最新版本的 React，请避免使用这个生命周期事件。
+1.  不要使用内联函数定义
+    如果我们使用内联函数，则每次调用“render”函数时都会创建一个新的函数实例; `<input type="button" onClick={(e) => { this.setState({inputValue: e.target.value}) }} value="Click For Inline Function" />`
+1.  类组件:
     使用的 React 优化 API 主要是：shouldComponentUpdate 和 PureComponent，这两个 API 所提供的解决思路都是为了减少重新 render 的次数，主要是减少父组件更新而子组件也更新的情况
--   函数式组件：React.memo 这个效果基本跟类组件里面的 PureComponent 效果极其类似
+1.  函数式组件：React.memo 这个效果基本跟类组件里面的 PureComponent 效果极其类似
+1.  懒加载组件
 
--   渲染列表时加 key
--   自定义事件、DOM 事件及时销毁
--   合理使用一部组件
--   减少函数 bind this 的次数
--   合理使用 SCU PureComponent
--   合适使用 Immutable.js
--   webpack 层面的优化
--   前端通用的性能优化，如图片懒加载
--   使用 SSR
+    ```js
+    import React, { lazy, Suspense } from 'react'
+    export default class CallingLazyComponents extends React.Component {
+    	render() {
+    		var ComponentToLazyLoad = null
+
+    		if (this.props.name == 'Mayank') {
+    			ComponentToLazyLoad = lazy(() => import('./mayankComponent'))
+    		} else if (this.props.name == 'Anshul') {
+    			ComponentToLazyLoad = lazy(() => import('./anshulComponent'))
+    		}
+    		return (
+    			<div>
+    				<h1>This is the Base User: {this.state.name}</h1>
+    				<Suspense fallback={<div>Loading...</div>}>
+    					<ComponentToLazyLoad />
+    				</Suspense>
+    			</div>
+    		)
+    	}
+    }
+    ```
+
+1.  渲染列表时加 key
+1.  自定义事件、DOM 事件及时销毁
+1.  合理使用一部组件
+1.  减少函数 bind this 的次数
+1.  合理使用 SCU PureComponent
+1.  合适使用 Immutable.js
+1.  webpack 层面的优化
+1.  前端通用的性能优化，如图片懒加载
+1.  使用 SSR
 
 ### 为什么用 key
 
@@ -116,19 +149,23 @@ ReactDOM.render(<Header favcol="taobao" />, document.getElementById('root'))
 
 ```javascript
 function MyComponent(props) {
-  /* 使用 props 渲染 */
+	/* 使用 props 渲染 */
 }
 function areEqual(prevProps, nextProps) {
-  /*
+	/*
   如果把 nextProps 传入 render 方法的返回结果与
   将 prevProps 传入 render 方法的返回结果一致则返回 true，
   否则返回 false
   */
+	if (prevProps.xxx !== nextProps.xxx) {
+		return false
+	}
+	return true
 }
-exportdefault React.memo(MyComponent, areEqual);
+export default React.memo(MyComponent, areEqual)
 ```
 
-如果你有在类组件里面使用过 `shouldComponentUpdate()`这个方法，你会对 React.memo 的第二个参数非常的熟悉，不过值得注意的是，如果 props 相等，areEqual 会返回 true；如果 props 不相等，则返回 false。这与 shouldComponentUpdate 方法的返回值相反
+如果你有在类组件里面使用过 `shouldComponentUpdate()`这个方法，你会对 React.memo 的第二个参数非常的熟悉，不过值得注意的是，如果 props 相等，areEqual 会返回 true；如果 props 不相等，则返回 false.这与 shouldComponentUpdate 方法的返回值相反
 
 ### useCallback
 
@@ -218,15 +255,29 @@ const rootElement = document.getElementById('root')
 ReactDOM.render(<App />, rootElement)
 ```
 
-> 问题：当父组件重新渲染的时候，传递给子组件的 props 发生了改变，再看传递给 Child 组件的就两个属性，一个是 name，一个是 onClick ，name 是传递的常量，不会变，变的就是 onClick 了，为什么传递给 onClick 的 callback 函数会发生改变呢？在文章的开头就已经说过了，在函数式组件里每次重新渲染，函数组件都会重头开始重新执行，那么这两次创建的 callback 函数肯定发生了改变，所以导致了子组件重新渲染。
+> 问题：当父组件重新渲染的时候，传递给子组件的 props 发生了改变，再看传递给 Child 组件的就两个属性，一个是 name，一个是 onClick ，name 是传递的常量，不会变，变的就是 onClick 了，为什么传递给 onClick 的 callback 函数会发生改变呢?在文章的开头就已经说过了，在函数式组件里每次重新渲染，函数组件都会重头开始重新执行，那么这两次创建的 callback 函数肯定发生了改变，所以导致了子组件重新渲染.
 
 > 解决：在函数没有改变的时候，重新渲染的时候保持两个函数的引用一致，这个时候就要用到 useCallback 这个 API 了
 
 ### useMemo
 
-在文章的开头就已经介绍了，React 的性能优化方向主要是两个：一个是减少重新 render 的次数(或者说减少不必要的渲染)，另一个是减少计算的量。
+useMemo() 基本用法如下：
 
-前面介绍的 React.memo 和 useCallback 都是为了减少重新 render 的次数。对于如何减少计算的量，就是 useMemo 来做的，接下来我们看例子。
+> const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+
+useMemo() 返回的是一个 memoized 值，只有当依赖项（比如上面的 a,b 发生变化的时候，才会重新计算这个 memoized 值）
+
+memoized 值不变的情况下，不会重新触发渲染逻辑。
+
+说起渲染逻辑，需要记住的是 useMemo() 是在 render 期间执行的，所以不能进行一些额外的副操作，比如网络请求等。
+
+React 的性能优化方向主要是两个：一个是减少重新 render 的次数(或者说减少不必要的渲染)，另一个是减少计算的量.
+
+:::tip
+前面介绍的 React.memo 和 useCallback 都是为了减少 re-render 的次数; 而在某些场景下，我们只是希望 component 的部分不要进行 re-render，而不是整个 component 不要 re-render，也就是要实现 `局部 Pure` 功能.
+:::
+
+对于如何减少计算的量，就是 useMemo 来做的，接下来我们看例子.
 
 ```javascript
 function App() {
@@ -258,13 +309,13 @@ function App() {
 
 ### 可能产生性能问题
 
-就算是一个看起来很简单的组件，也有可能产生性能问题，通过这个最简单的例子来看看还有什么值得优化的地方。
+就算是一个看起来很简单的组件，也有可能产生性能问题，通过这个最简单的例子来看看还有什么值得优化的地方.
 
-首先我们把 expensiveFn 函数当做一个计算量很大的函数(比如你可以把 i 换成 10000000)，然后当我们每次点击 +1 按钮的时候，都会重新渲染组件，而且都会调用 expensiveFn 函数并输出 49995000。由于每次调用 expensiveFn 所返回的值都一样，所以我们可以想办法将计算出来的值缓存起来，每次调用函数直接返回缓存的值，这样就可以做一些性能优化。
+首先我们把 expensiveFn 函数当做一个计算量很大的函数(比如你可以把 i 换成 10000000)，然后当我们每次点击 +1 按钮的时候，都会重新渲染组件，而且都会调用 expensiveFn 函数并输出 49995000.由于每次调用 expensiveFn 所返回的值都一样，所以我们可以想办法将计算出来的值缓存起来，每次调用函数直接返回缓存的值，这样就可以做一些性能优化.
 
 ### useMemo 做计算结果缓存
 
-针对上面产生的问题，就可以用 useMemo 来缓存 expensiveFn 函数执行后的值。
+针对上面产生的问题，就可以用 useMemo 来缓存 expensiveFn 函数执行后的值.
 
 首先介绍一下 useMemo 的基本的使用方法，详细的使用方法可见官网[3]：
 
@@ -277,7 +328,7 @@ function computeExpensiveValue() {
 const memoizedValue = useMemo(computeExpensiveValue, [a, b])
 ```
 
-useMemo 的第一个参数就是一个函数，这个函数返回的值会被缓存起来，同时这个值会作为 useMemo 的返回值，第二个参数是一个数组依赖，如果数组里面的值有变化，那么就会重新去执行第一个参数里面的函数，并将函数返回的值缓存起来并作为 useMemo 的返回值 。
+useMemo 的第一个参数就是一个函数，这个函数返回的值会被缓存起来，同时这个值会作为 useMemo 的返回值，第二个参数是一个数组依赖，如果数组里面的值有变化，那么就会重新去执行第一个参数里面的函数，并将函数返回的值缓存起来并作为 useMemo 的返回值 .
 
 了解了 useMemo 的使用方法，然后就可以对上面的例子进行优化，优化代码如下：
 
@@ -305,30 +356,11 @@ function App() {
 }
 ```
 
-执行上面的代码，然后现在可以观察无论我们点击 +1 多少次，只会输出一次 49995000，这就代表 expensiveFn 只执行了一次，达到了我们想要的效果。
+执行上面的代码，然后现在可以观察无论我们点击 +1 多少次，只会输出一次 49995000，这就代表 expensiveFn 只执行了一次，达到了我们想要的效果.
 
 ### 小结
 
-useMemo 的使用场景主要是用来缓存计算量比较大的函数结果，可以避免不必要的重复计算，有过 vue 的使用经历同学可能会觉得跟 Vue 里面的计算属性有异曲同工的作用。
-
-## React 生命周期
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/f9de7c8334ae42d9a8121e0bd1ab505c.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5bCP6IyD6aaG,size_20,color_FFFFFF,t_70,g_se,x_16)
-
-## React 父子组件生命周期
-
-> mountComponent 负责管理生命周期中的 mounting 阶段的方法调用
-
-mountComponent 本质上是通过递归渲染内容的，由于递归的特性，父组件的 componentWillMount 在其子组件的 componentWillMount 之前调用，而父组件的 componentDidMount 在其子组件的 componentDidMount 之后调用
-
-> updateComponent 负责管理生命周期中的 updating 阶段的方法调用
-
-updateComponent 本质上是通过递归渲染内容的，由于递归的特性，父组件的 componentWillUpdate 在其子组件的 componentWillUpdate 之前调用，而父组件的 componentDidUpdate 在其子组件的 componentDidUpdate 之后调用
-
-<div style="display:flex">
-<img src="https://img-blog.csdnimg.cn/133f6cfb49314dab8d8638f324f2f487.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5bCP6IyD6aaG,size_20,color_FFFFFF,t_70,g_se,x_16" alt="图片替换文本" width="500" />
-<img src="https://img-blog.csdnimg.cn/b22e942c99eb4a67a44f2866dc84fba4.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5bCP6IyD6aaG,size_20,color_FFFFFF,t_70,g_se,x_16" alt="图片替换文本" width="500" />
-</div>
+useMemo 的使用场景主要是用来缓存计算量比较大的函数结果，可以避免不必要的重复计算，有过 vue 的使用经历同学可能会觉得跟 Vue 里面的计算属性有异曲同工的作用.
 
 ## setState 是同步的还是异步的
 
@@ -344,13 +376,13 @@ concurrent 模式下：都是异步的
 -   看是否能命中 batchUpdate 机制
 -   判断 isBatchingUpdates
 
-## 哪些能触发 batchUpdate？
+### 哪些能触发 batchUpdate?
 
 生命周期和它调用的函数
 react 中注册的事件和它调用的函数
 react 可以管理的入口
 
-## 哪些不能触发 batchUpdate？
+### 哪些不能触发 batchUpdate?
 
 setTimeout、setInterval
 自定义的 DOM 事件和它调用的函数
@@ -386,11 +418,9 @@ react 管不到的入口
 
 componentWillMount、componentWillMount、componentWillUpdate 为什么标记 UNSAFE
 
-新的 Fiber 架构能在 scheduler 的调度下实现暂停继续，排列优先级，Lane 模型能使 Fiber 节点具有优先级，在高优先级的任务打断低优先级的任务时，低优先级的更新可能会被跳过，所有以上生命周期可能会被执行多次，和之前版本的行为不一致。
+新的 Fiber 架构能在 scheduler 的调度下实现暂停继续，排列优先级，Lane 模型能使 Fiber 节点具有优先级，在高优先级的任务打断低优先级的任务时，低优先级的更新可能会被跳过，所有以上生命周期可能会被执行多次，和之前版本的行为不一致.
 
 ## React 单向数据流
-
-![redux](/redux.gif)
 
 ## React 事件系统原理
 
@@ -409,7 +439,7 @@ componentWillMount、componentWillMount、componentWillUpdate 为什么标记 UN
 **事件合成**
 
 -   合成事件首先抹平了浏览器之间的兼容问题，另外这是一个跨浏览器原生事件包装器，赋予了跨浏览器开发的能力
--   对于原生浏览器事件来说，浏览器会给监听器创建一个事件对象。如果你有很多的事件监听，那么就需要分配很多的事件对象，造成高额的内存分配问题。但是对于合成事件来说，有一个事件池专门来管理它们的创建和销毁，当事件需要被使用时，就会从池子中复用对象，事件回调结束后，就会销毁事件对象上的属性，从而便于下次复用事件对象。
+-   对于原生浏览器事件来说，浏览器会给监听器创建一个事件对象.如果你有很多的事件监听，那么就需要分配很多的事件对象，造成高额的内存分配问题.但是对于合成事件来说，有一个事件池专门来管理它们的创建和销毁，当事件需要被使用时，就会从池子中复用对象，事件回调结束后，就会销毁事件对象上的属性，从而便于下次复用事件对象.
 
 **1. react 是如何合成事件**
 
@@ -455,7 +485,7 @@ const SimpleEventPlugin = {
                 captured:'onClickCapture' //对应事件捕获阶段 - onClickCapture
             },
             dependencies: ['click'], //事件依赖
-            //eventTypes是一个对象，对象保存了原生事件名和对应的配置项dispatchConfig的映射关系。由于v16React的事件是统一绑定在document上的，React用独特的事件名称比如onClick和onClickCapture，来说明我们给绑定的函数到底是在冒泡事件阶段，还是捕获事件阶段执行。
+            //eventTypes是一个对象，对象保存了原生事件名和对应的配置项dispatchConfig的映射关系.由于v16React的事件是统一绑定在document上的，React用独特的事件名称比如onClick和onClickCapture，来说明我们给绑定的函数到底是在冒泡事件阶段，还是捕获事件阶段执行.
         },
         'blur':{ /* 处理失去焦点事件 */ },
         // ...
@@ -513,13 +543,13 @@ memoizedProps = {
 
 3. React 在调合子节点的时候,会进入 diff 阶段,如果判断是 HostComponent 类型的 fiber,会用 diff props 函数 diffPropsties 单独处理
 
-4. diffProperties 函数在 diff props 如果发现是合成事件(onClick) 就会调用 legacyListenToEvent 函数。注册事件监听器.肯定是合成事件吧
+4. diffProperties 函数在 diff props 如果发现是合成事件(onClick) 就会调用 legacyListenToEvent 函数.注册事件监听器.肯定是合成事件吧
 
 ```js
 //  registrationName -> onClick 事件
 //  mountAt -> document or container
 function legacyListenToEvent(registrationName，mountAt){
-   const dependencies = registrationNameDependencies[registrationName]; // 根据 onClick 获取  onClick 依赖的事件数组 [ 'click' ]。
+   const dependencies = registrationNameDependencies[registrationName]; // 根据 onClick 获取  onClick 依赖的事件数组 [ 'click' ].
     for (let i = 0; i < dependencies.length; i++) {
     const dependency = dependencies[i];
     //这个经过多个函数简化，如果是 click 基础事件，会走 legacyTrapBubbledEvent ,而且都是按照冒泡处理
@@ -529,14 +559,14 @@ function legacyListenToEvent(registrationName，mountAt){
 
 ```
 
-5. legacyTrapBubbledEvent 就是执行将绑定真正的 dom 事件的函数 legacyTrapBubbledEvent(冒泡处理)。
+5. legacyTrapBubbledEvent 就是执行将绑定真正的 dom 事件的函数 legacyTrapBubbledEvent(冒泡处理).
 
 ```js
 1. 先找到React合成事件对应的原生事件集合onClick-click,onCheng-[blur,change,input,keydown,keyup],然后遍历依赖项的数组,绑定事件
 
 2. 大部分事件都是用的冒泡,特殊的事件用的是捕获比如scroll事件
 case TOP_SCROLL: {                                // scroll 事件
-    legacyTrapCapturedEvent(TOP_SCROLL, mountAt); // legacyTrapCapturedEvent 事件捕获处理。
+    legacyTrapCapturedEvent(TOP_SCROLL, mountAt); // legacyTrapCapturedEvent 事件捕获处理.
     break;
 }
 case TOP_FOCUS: // focus 事件
@@ -557,20 +587,20 @@ break;
 function addTrappedEventListener(targetContainer,topLevelType,eventSystemFlags,capture){
    const listener = dispatchEvent.bind(null,topLevelType,eventSystemFlags,targetContainer)
    if(capture){
-       // 事件捕获阶段处理函数。
+       // 事件捕获阶段处理函数.
    }else{
-       /* TODO: 重要, 这里进行真正的事件绑定。*/
+       /* TODO: 重要, 这里进行真正的事件绑定.*/
       targetContainer.addEventListener(topLevelType,listener,false) // document.addEventListener('click',listener,false)
    }
 }
-这个函数内容虽然不多，但是却非常重要,首先绑定我们的事件统一处理函数 dispatchEvent，绑定几个默认参数，事件类型 topLevelType demo中的click ，还有绑定的容器doucment。然后真正的事件绑定,添加事件监听器addEventListener。 事件绑定阶段完毕
+这个函数内容虽然不多，但是却非常重要,首先绑定我们的事件统一处理函数 dispatchEvent，绑定几个默认参数，事件类型 topLevelType demo中的click ，还有绑定的容器doucment.然后真正的事件绑定,添加事件监听器addEventListener. 事件绑定阶段完毕
 ```
 
 7. 总结
 
-    - 在 React，diff DOM 元素类型的 fiber 的 props 的时候， 如果发现是 React 合成事件，比如 onClick，会按照事件系统逻辑单独处理。
-    - 根据 React 合成事件类型，找到对应的原生事件的类型，然后调用判断原生事件类型，大部分事件都按照冒泡逻辑处理，少数事件会按照捕获逻辑处理（比如 scroll 事件）。
-    - 调用 addTrappedEventListener 进行真正的事件绑定，绑定在 document 上，dispatchEvent 为统一的事件处理函数。
+    - 在 React，diff DOM 元素类型的 fiber 的 props 的时候， 如果发现是 React 合成事件，比如 onClick，会按照事件系统逻辑单独处理.
+    - 根据 React 合成事件类型，找到对应的原生事件的类型，然后调用判断原生事件类型，大部分事件都按照冒泡逻辑处理，少数事件会按照捕获逻辑处理（比如 scroll 事件）.
+    - 调用 addTrappedEventListener 进行真正的事件绑定，绑定在 document 上，dispatchEvent 为统一的事件处理函数.
     - 有一点值得注意: 只有上述那几个特殊事件比如 scorll,focus,blur 等是在事件捕获阶段发生的，其他的都是在事件冒泡阶段发生的，无论是 onClick 还是 onClickCapture 都是发生在冒泡阶段
 
 8. EventPlugin， 事件插件可以认为是 React 将不同的合成事件处理函数封装成了一个模块，每个模块只处理自己对应的合成事件，这样不同类型的事件种类就可以在代码上解耦，例如针对 onChange 事件有一个单独的 LegacyChangeEventPlugin 插件来处理，针对 onMouseEnter， onMouseLeave 使用 LegacyEnterLeaveEventPlugin 插件来处理
@@ -695,7 +725,7 @@ function getClosestInstanceFromNode(targetNode){
 4. 方向触发这条链,模拟捕获阶段,触发所有 props 中含有 onClickCapture 的实例.正向触发这条链,子-父,模拟冒泡阶段,触发所有 props 中含有的 onClick 的实例
 5. React 的冒泡和捕获并不是真正 DOM 级别的冒泡和捕获
 6. react 会在一个原生事件里触发所有相关节点的 onClick 事件,在执行 onClick 之前 React 会打开批量渲染开关,这个开关会将所有的 setState 变成异步函数
-7. 事件只针对原生组件生效，自定义组件不会触发 onClick。--这个不懂啊
+7. 事件只针对原生组件生效，自定义组件不会触发 onClick.--这个不懂啊
 8. 我们收到的 event 对象为 React 合成事件,event 对象在事件之外不可以使用
 
 ```js
@@ -1006,7 +1036,7 @@ dom上所有带有通过jsx绑定的onClick的回调函数都会按顺序（冒�
  */
 ```
 
-## 说下 SyntheticEvent 合成事件机制？
+## 说下 SyntheticEvent 合成事件机制?
 
 -   更好的兼容性和跨平台
 -   挂载到 document，减少内存消耗，避免频繁解绑（react17 后挂载到 container）
@@ -1027,13 +1057,13 @@ dom上所有带有通过jsx绑定的onClick的回调函数都会按顺序（冒�
 -   React 事件绑定发生在 reconcile 阶段 会在原生事件绑定前执行
     **优势：**
 
--   进行了浏览器兼容。顶层事件代理，能保证冒泡一致性(混合使用会出现混乱)
+-   进行了浏览器兼容.顶层事件代理，能保证冒泡一致性(混合使用会出现混乱)
 
 -   默认批量更新
 
 -   避免事件对象频繁创建和回收，react 引入事件池，在事件池中获取和释放对象（react17 中废弃） react17 事件绑定在容器上了
 
-## 我们写的事件是绑定在 dom 上么，如果不是绑定在哪里？
+## 我们写的事件是绑定在 dom 上么，如果不是绑定在哪里?
 
 v16 绑定在 document 上，v17 绑定在 container 上
 
@@ -1043,11 +1073,11 @@ v16 绑定在 document 上，v17 绑定在 container 上
 
 合成事件监听函数在执行的时候会丢失上下文
 
-## 为什么不能用 return false 来阻止事件的默认行为？
+## 为什么不能用 return false 来阻止事件的默认行为?
 
 说到底还是合成事件和原生事件触发时机不一样
 
-## jsx 的渲染过程
+## JSX 的渲染过程
 
 jsx 会经过 babel 编译成 createElement 函数的结构，然后 createElement 执行产生虚拟 dom 结构 VNode(就是一个有一定属性的对象结构)，然后通过 render 函数处理 VNode 为虚拟节点，在页面中渲染
 
@@ -1157,23 +1187,60 @@ export default ReactDOM
 
 diff 算法对比新旧 VNode，如果新旧 VNode 不一样就调用 render 重新渲染视图的过程
 
-区别就在于多出了一层虚拟 DOM 作为缓冲层。这个缓冲层带来的利好是：
+区别就在于多出了一层虚拟 DOM 作为缓冲层.这个缓冲层带来的利好是：
 
 当 DOM 操作（渲染更新）比较频繁时，
 它会先将前后两次的虚拟 DOM 树进行对比，
 定位出具体需要更新的部分，生成一个“补丁集”，
-最后只把“补丁”打在需要更新的那部分真实 DOM 上，实现精准的“差量更新”。
+最后只把“补丁”打在需要更新的那部分真实 DOM 上，实现精准的“差量更新”.
 
-## diff 算法流程
+## React diff 算法流程
 
-## React 16 在所有情况下都是异步渲染的吗？
+传统 diff 算法的复杂度为 O(n^3)，显然这是无法满足性能要求的。**React 通过制定大胆的策略，将 O(n^3) 复杂度的问题转换成 O(n) 复杂度的问题。**
+
+diff 策略
+
+1. Web UI 中 DOM 节点跨层级的移动操作特别少，可以忽略不计。
+1. 拥有相同类的两个组件将会生成相似的树形结构，拥有不同类的两个组件将会生成不同的树形结构。
+1. 对于同一层级的一组子节点，它们可以通过唯一 id 进行区分。
+
+**基于以上三个前提策略，React 分别对 tree diff、component diff 以及 element diff 进行算法优化，事实也证明这三个前提策略是合理且准确的，它保证了整体界面构建的性能。**
+
+-   tree diff
+
+    基于策略一，React 对树的算法进行了简洁明了的优化，即对树进行分层比较，两棵树只会对同一层次的节点进行比较。
+
+    既然 DOM 节点跨层级的移动操作少到可以忽略不计，针对这一现象，React 通过 updateDepth 对 Virtual DOM 树进行层级控制，只会对相同颜色方框内的 DOM 节点进行比较，即同一个父节点下的所有子节点。当发现节点已经不存在，则该节点及其子节点会被完全删除掉，不会用于进一步的比较。这样只需要对树进行一次遍历，便能完成整个 DOM 树的比较。
+
+    _如果出现了 DOM 节点跨层级的移动操作，React diff 会有怎样的表现呢？_ 是的，对此我也好奇不已，不如试验一番。
+
+    如下图，A 节点（包括其子节点）整个被移动到 D 节点下，由于 React 只会简单的考虑同层级节点的位置变换，而对于不同层级的节点，只有创建和删除操作。当根节点发现子节点中 A 消失了，就会直接销毁 A；当 D 发现多了一个子节点 A，则会创建新的 A（包括子节点）作为其子节点。此时，React diff 的执行情况：create A -> create B -> create C -> delete A。
+    ![](/react.diff.jpg)
+
+    由此可发现，当出现节点跨层级移动时，并不会出现想象中的移动操作，而是以 A 为根节点的树被整个重新创建，这是一种影响 React 性能的操作，因此 React 官方建议不要进行 DOM 节点跨层级的操作。
+
+    > 注意：在开发组件时，保持稳定的 DOM 结构会有助于性能的提升。例如，可以通过 CSS 隐藏或显示节点，而不是真的移除或添加 DOM 节点。
+
+-   component diff
+
+    React 是基于组件构建应用的，对于组件间的比较所采取的策略也是简洁高效。
+
+    -   如果是同一类型的组件，按照原策略继续比较 virtual DOM tree。
+    -   如果不是，则将该组件判断为 dirty component，从而替换整个组件下的所有子节点
+    -   对于同一类型的组件，有可能其 Virtual DOM 没有任何变化，如果能够确切的知道这点那可以节省大量的 diff 运算时间，因此 React 允许用户通过 shouldComponentUpdate() 来判断该组件是否需要进行 diff。
+
+    如下图，当 component D 改变为 component G 时，即使这两个 component 结构相似，一旦 React 判断 D 和 G 是不同类型的组件，就不会比较二者的结构，而是直接删除 component D，重新创建 component G 以及其子节点。虽然当两个 component 是不同类型但结构相似时，React diff 会影响性能，但正如 React 官方博客所言：不同类型的 component 是很少存在相似 DOM tree 的机会，因此这种极端因素很难在实现开发过程中造成重大影响的。
+
+    ![](/react.component.diff.jpg)
+
+-   element diff
 
 ## React 类组件 this 绑定问题
 
 :::tip
 [真正的原因在 JavaScript 不在 React](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Classes#用原型和静态方法绑定_this)
 
-当调用静态或原型方法时没有指定 this 的值，那么方法内的 this 值将被置为 undefined。即使你未设置 "use strict" ，因为 class 体内部的代码总是在严格模式下执行。
+当调用静态或原型方法时没有指定 this 的值，那么方法内的 this 值将被置为 undefined.即使你未设置 "use strict" ，因为 class 体内部的代码总是在严格模式下执行.
 :::
 
 ```js
@@ -1196,9 +1263,9 @@ let eat = Animal.eat
 eat() // undefined
 ```
 
-如果上述代码通过传统的基于函数的语法来实现，那么依据初始的 this 值，在非严格模式下方法调用会发生自动装箱。若初始值是 undefined，this 值会被设为全局对象。
+如果上述代码通过传统的基于函数的语法来实现，那么依据初始的 this 值，在非严格模式下方法调用会发生自动装箱.若初始值是 undefined，this 值会被设为全局对象.
 
-严格模式下不会发生自动装箱，this 值将保留传入状态。
+严格模式下不会发生自动装箱，this 值将保留传入状态.
 
 ```js
 function Animal() {}
@@ -1219,7 +1286,7 @@ let eat = Animal.eat
 eat() // global object
 ```
 
-> 在 constructor 中绑定是最佳和最高效的地方，因为我们在初始化 class 时已经将函数绑定，让 this 指向正确的上下文。
+> 在 constructor 中绑定是最佳和最高效的地方，因为我们在初始化 class 时已经将函数绑定，让 this 指向正确的上下文.
 
 ```js
 class Foo {
@@ -1258,7 +1325,7 @@ class Foo extends React.Component {
 }
 ```
 
-这是因为我们使用 public class fields 语法，handleClick 箭头函数会自动将 this 绑定在 Foo 这个 class, 具体就不做探究。
+这是因为我们使用 public class fields 语法，handleClick 箭头函数会自动将 this 绑定在 Foo 这个 class, 具体就不做探究.
 
 **箭头函数**
 
@@ -1278,25 +1345,27 @@ class Foo extends React.Component {
 }
 ```
 
-这是因为在 ES6 中，箭头函数 this 默认指向函数的宿主对象(或者函数所绑定的对象)。
+这是因为在 ES6 中，箭头函数 this 默认指向函数的宿主对象(或者函数所绑定的对象).
 
-## 服务端渲染SSR
-### React16中render和hydrate的区别
+## 服务端渲染 SSR
+
+### React16 中 render 和 hydrate 的区别
+
 #### render()
 
-render话不多说就是渲染的意思，官方解释：
+render 话不多说就是渲染的意思，官方解释：
 
-- 在提供的 container 里渲染一个 React 元素，并返回对该组件的引用（或者针对无状态组件返回 null）。
-- 如果 React 元素之前已经在 container 里渲染过，这将会对其执行更新操作，并仅会在必要时改变 DOM 以映射最新的 React 元素
-- 如果提供了可选的回调函数，该回调将在组件被渲染或更新之后被执行。
+-   在提供的 container 里渲染一个 React 元素，并返回对该组件的引用（或者针对无状态组件返回 null）.
+-   如果 React 元素之前已经在 container 里渲染过，这将会对其执行更新操作，并仅会在必要时改变 DOM 以映射最新的 React 元素
+-   如果提供了可选的回调函数，该回调将在组件被渲染或更新之后被执行.
 
 hydrate()
-与 render() 相同，但它用于在 ReactDOMServer 渲染的容器中对 HTML 的内容进行 hydrate 操作。
+与 render() 相同，但它用于在 ReactDOMServer 渲染的容器中对 HTML 的内容进行 hydrate 操作.
 
-hydrate基本上用于SSR（服务器端渲染）。 SSR为您提供了从服务器附带的框架或HTML标记，因此，第一次在页面加载时不为空白，搜索引擎机器人可以将其索引为SEO（SSR的一个用例）。 因此，hydrate会将JS添加到您的页面或要应用SSR的节点。 这样您的页面才能响应用户执行的事件。
+hydrate 基本上用于 SSR（服务器端渲染）. SSR 为您提供了从服务器附带的框架或 HTML 标记，因此，第一次在页面加载时不为空白，搜索引擎机器人可以将其索引为 SEO（SSR 的一个用例）. 因此，hydrate 会将 JS 添加到您的页面或要应用 SSR 的节点. 这样您的页面才能响应用户执行的事件.
 
-渲染用于在客户端浏览器Plus上渲染组件，如果尝试将hydrate替换为render，则会收到警告，提示render已弃用，在SSR情况下无法使用。 由于它比水合物慢，因此将其除去。
+渲染用于在客户端浏览器 Plus 上渲染组件，如果尝试将 hydrate 替换为 render，则会收到警告，提示 render 已弃用，在 SSR 情况下无法使用. 由于它比水合物慢，因此将其除去.
 
-#### 为什么在服务端渲染的时候不采用render？
-在react15中，当服务端和客户端渲染不一致时，render会做dom patch，使得最后的渲染内容和客户端一致，否则这会使得客户端代码陷入混乱之中，如下的代码就会挂掉。
+#### 为什么在服务端渲染的时候不采用 render?
 
+在 react15 中，当服务端和客户端渲染不一致时，render 会做 dom patch，使得最后的渲染内容和客户端一致，否则这会使得客户端代码陷入混乱之中，如下的代码就会挂掉.

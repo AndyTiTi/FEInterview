@@ -7,6 +7,23 @@ title: 第一章
 ![react 15](/react15.jpg)
 ![react 16](/react16.jpg)
 
+![在这里插入图片描述](https://img-blog.csdnimg.cn/f9de7c8334ae42d9a8121e0bd1ab505c.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5bCP6IyD6aaG,size_20,color_FFFFFF,t_70,g_se,x_16)
+
+### React 父子组件生命周期
+
+> mountComponent 负责管理生命周期中的 mounting 阶段的方法调用
+
+mountComponent 本质上是通过递归渲染内容的，由于递归的特性，父组件的 componentWillMount 在其子组件的 componentWillMount 之前调用，而父组件的 componentDidMount 在其子组件的 componentDidMount 之后调用
+
+> updateComponent 负责管理生命周期中的 updating 阶段的方法调用
+
+updateComponent 本质上是通过递归渲染内容的，由于递归的特性，父组件的 componentWillUpdate 在其子组件的 componentWillUpdate 之前调用，而父组件的 componentDidUpdate 在其子组件的 componentDidUpdate 之后调用
+
+<div style="display:flex">
+<img src="https://img-blog.csdnimg.cn/133f6cfb49314dab8d8638f324f2f487.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5bCP6IyD6aaG,size_20,color_FFFFFF,t_70,g_se,x_16" alt="图片替换文本" width="500" />
+<img src="https://img-blog.csdnimg.cn/b22e942c99eb4a67a44f2866dc84fba4.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5bCP6IyD6aaG,size_20,color_FFFFFF,t_70,g_se,x_16" alt="图片替换文本" width="500" />
+</div>
+
 ## React 事件机制
 
 [一文吃透 React 事件机制原理](https://toutiao.io/posts/28of14w/preview)
@@ -478,7 +495,12 @@ Fiber 架构中的“可中断”“可恢复”到底是如何实现的？
 
 React Fiber 的出现相当于是在更新过程中引进了一个中场指挥官，负责掌控更新过程，足球世界里管这叫前腰。抛开带来的性能和效率提升外，这种“化整为零”和任务编排的思想，可以应用到我们平时的架构设计中。
 
-### Fiber 树和传统虚拟 DOM 树有何不同？
+## React 16 如果没有开启 Concurrent 模式，那它还能叫 Fiber 架构吗？
+
+这个问题很有意思，从动机上来看，Fiber 架构的设计确实主要是为了 Concurrent 而存在。
+
+在 React 16，包括已发布的 React 17 版本中，不管是否是 Concurrent，整个数据结构层面的设计、包括贯穿整个渲染链路的处理逻辑，已经完全用 Fiber 重构了一遍。站在这个角度来看，Fiber 架构在 React 中并不能够和异步渲染画严格的等号，它是一种同时兼容了同步渲染与异步渲染的设计。
+## Fiber 树和传统虚拟 DOM 树有何不同？
 
 ## React 的渲染流程
 
